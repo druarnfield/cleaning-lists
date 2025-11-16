@@ -1,0 +1,46 @@
+{{define "week_card"}}
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <h2 class="card-title">
+            {{.WeekLabel}}
+            <span class="text-sm font-normal text-base-content/60">
+                {{.StartDate}} - {{.EndDate}}
+            </span>
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-6 mt-4">
+            <!-- Dru's Column -->
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="badge badge-primary">Dru</div>
+                    <span class="text-sm">{{.DruTaskCount}} tasks • {{.DruMins}} mins</span>
+                </div>
+                <div class="space-y-2">
+                    {{range .DruTasks}}
+                        {{template "task_row" .}}
+                    {{end}}
+                    {{if not .DruTasks}}
+                    <p class="text-base-content/60 text-sm">No tasks scheduled</p>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Josie's Column -->
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="badge badge-secondary">Josie</div>
+                    <span class="text-sm">{{.JosieTaskCount}} tasks • {{.JosieMins}} mins</span>
+                </div>
+                <div class="space-y-2">
+                    {{range .JosieTasks}}
+                        {{template "task_row" .}}
+                    {{end}}
+                    {{if not .JosieTasks}}
+                    <p class="text-base-content/60 text-sm">No tasks scheduled</p>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}

@@ -1,0 +1,27 @@
+{{define "task_row"}}
+<div class="flex items-center gap-3 p-2 rounded hover:bg-base-200" id="task-{{.ID}}">
+    <input
+        type="checkbox"
+        {{if .IsCompleted}}checked{{end}}
+        class="checkbox checkbox-sm {{if eq .AssignedTo "dru"}}checkbox-primary{{else}}checkbox-secondary{{end}}"
+        hx-post="/tasks/instances/{{.ID}}/toggle"
+        hx-swap="outerHTML"
+        hx-target="#task-{{.ID}}"
+    />
+    <div class="flex-1 {{if .IsCompleted}}line-through opacity-50{{end}}">
+        <span class="font-medium">{{.TaskName}}</span>
+        {{if .BroughtForward}}
+            <span class="badge badge-info badge-xs ml-2">Brought Forward</span>
+        {{end}}
+        <div class="text-xs text-base-content/60">
+            {{.Category}} • {{.EstimatedMins}} mins
+            {{if .BroughtForward}}• Originally {{.OriginalDate}}{{end}}
+        </div>
+    </div>
+    {{if and (not .IsCompleted) (not .IsPast)}}
+    <button class="btn btn-ghost btn-xs" onclick="bringForwardModal({{.TaskID}})">
+        Bring Forward
+    </button>
+    {{end}}
+</div>
+{{end}}

@@ -1,0 +1,328 @@
+package pages
+
+import (
+	"github.com/druarnfield/cleaning-scheduler/internal/auth"
+	"github.com/druarnfield/cleaning-scheduler/internal/templates/layout"
+	"strconv"
+)
+
+type WeekData struct {
+	WeekStart    string
+	Tasks        []TaskDisplay
+	IsCurrentWeek bool
+	WeekOffset   int // -1 for prev, 0 for current, 1 for next, etc.
+	DruRemainingMins int
+	JosieRemainingMins int
+}
+
+type TaskDisplay struct {
+	ID             int64
+	Name           string
+	Category       string
+	AssignedTo     string
+	EstimatedMins  int64
+	ScheduledDate  string
+	IsCompleted    bool
+	CanBringForward bool
+}
+
+type SchedulePageData struct {
+	CurrentWeek WeekData
+	WeekOffset  int
+}
+
+templ SchedulePage(user *auth.User, data SchedulePageData) {
+	@layout.Base("Schedule", user) {
+		<div class="space-y-6">
+			<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+				<h1 class="text-3xl font-bold">Cleaning Schedule</h1>
+				<div class="flex gap-2 items-center w-full sm:w-auto">
+					<select
+						id="assignee-filter"
+						class="select select-bordered select-sm w-full sm:w-auto"
+						hx-get="/schedule"
+						hx-target="#schedule-content"
+						hx-swap="innerHTML"
+						hx-include="#week-offset"
+						name="assignee"
+					>
+						<option value="all">All Tasks</option>
+						<option value="dru">Dru's Tasks</option>
+						<option value="josie">Josie's Tasks</option>
+					</select>
+					if data.WeekOffset != 0 {
+						<button
+							class="btn btn-outline btn-primary btn-sm"
+							hx-get="/schedule"
+							hx-target="#schedule-content"
+							hx-swap="innerHTML"
+							hx-include="#assignee-filter"
+						>
+							Current Week
+						</button>
+					}
+				</div>
+			</div>
+			<input type="hidden" id="week-offset" name="week" value={ strconv.Itoa(data.WeekOffset) }/>
+
+			<div id="schedule-content">
+				@ScheduleContent(data)
+			</div>
+		</div>
+
+		<!-- Bring Forward Modal -->
+		<dialog id="bring_forward_modal" class="modal modal-bottom sm:modal-middle">
+			<div class="modal-box">
+				<h3 class="font-bold text-lg">Bring Task Forward</h3>
+				<form method="POST" id="bring-forward-form" hx-post="#" hx-swap="outerHTML" hx-target="#week-container">
+					<div class="form-control my-4">
+						<label class="label">
+							<span class="label-text">Select Date</span>
+						</label>
+						<input type="date" name="target_date" class="input input-bordered" required/>
+					</div>
+					<div class="modal-action">
+						<button type="button" class="btn" onclick="document.getElementById('bring_forward_modal').close()">Cancel</button>
+						<button type="submit" class="btn btn-primary">Bring Forward</button>
+					</div>
+				</form>
+			</div>
+			<form method="dialog" class="modal-backdrop">
+				<button>close</button>
+			</form>
+		</dialog>
+
+		<script>
+			function bringForwardModal(taskId) {
+				const form = document.getElementById('bring-forward-form');
+				form.setAttribute('hx-post', `/tasks/${taskId}/bring-forward`);
+				htmx.process(form);
+				document.getElementById('bring_forward_modal').showModal();
+			}
+
+			// Handle bring forward buttons
+			document.addEventListener('click', function(e) {
+				if (e.target.classList.contains('bring-forward-btn')) {
+					const taskId = e.target.getAttribute('data-task-id');
+					bringForwardModal(taskId);
+				}
+			});
+
+			// Sort table function
+			function sortTable(tableId, column) {
+				const table = document.getElementById(tableId);
+				const tbody = table.querySelector('tbody');
+				const rows = Array.from(tbody.querySelectorAll('tr'));
+				const isAscending = table.getAttribute('data-sort-column') === column.toString() &&
+								   table.getAttribute('data-sort-dir') === 'asc';
+
+				rows.sort((a, b) => {
+					const aText = a.cells[column].innerText;
+					const bText = b.cells[column].innerText;
+
+					// Try to parse as numbers first
+					const aNum = parseFloat(aText);
+					const bNum = parseFloat(bText);
+
+					if (!isNaN(aNum) && !isNaN(bNum)) {
+						return isAscending ? bNum - aNum : aNum - bNum;
+					}
+
+					// Otherwise sort as text
+					return isAscending ?
+						bText.localeCompare(aText) :
+						aText.localeCompare(bText);
+				});
+
+				// Clear tbody and re-add sorted rows
+				tbody.innerHTML = '';
+				rows.forEach(row => tbody.appendChild(row));
+
+				// Update sort attributes
+				table.setAttribute('data-sort-column', column);
+				table.setAttribute('data-sort-dir', isAscending ? 'desc' : 'asc');
+
+				// Update sort indicators
+				const headers = table.querySelectorAll('th');
+				headers.forEach((header, idx) => {
+					header.classList.remove('sort-asc', 'sort-desc');
+					if (idx === column) {
+						header.classList.add(isAscending ? 'sort-desc' : 'sort-asc');
+					}
+				});
+			}
+		</script>
+
+		<style>
+			.sort-asc::after {
+				content: ' ↑';
+				opacity: 0.7;
+				color: #3b82f6;
+				font-weight: bold;
+			}
+			.sort-desc::after {
+				content: ' ↓';
+				opacity: 0.7;
+				color: #3b82f6;
+				font-weight: bold;
+			}
+			th {
+				cursor: pointer;
+				user-select: none;
+			}
+			th:hover {
+				background-color: rgba(0,0,0,0.08);
+				transform: translateY(-1px);
+			}
+			tbody tr:hover {
+				transform: translateY(-1px);
+				box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+			}
+			.table tbody tr {
+				transition: all 0.2s ease;
+			}
+		</style>
+	}
+}
+
+templ ScheduleContent(data SchedulePageData) {
+	<div class="space-y-4">
+		<!-- Minutes Remaining Section -->
+		<div class="grid grid-cols-2 gap-4">
+			<div class="stat bg-base-100 shadow rounded-lg p-4">
+				<div class="stat-title text-sm">Dru's Remaining</div>
+				<div class="stat-value text-2xl sm:text-3xl text-primary">{ strconv.Itoa(data.CurrentWeek.DruRemainingMins) } min</div>
+			</div>
+			<div class="stat bg-base-100 shadow rounded-lg p-4">
+				<div class="stat-title text-sm">Josie's Remaining</div>
+				<div class="stat-value text-2xl sm:text-3xl text-secondary">{ strconv.Itoa(data.CurrentWeek.JosieRemainingMins) } min</div>
+			</div>
+		</div>
+
+		<!-- Week Card with Navigation -->
+		<div id="week-container">
+			@WeekCard(data.CurrentWeek, data.WeekOffset == 0, data.WeekOffset)
+		</div>
+	</div>
+}
+
+templ WeekCard(week WeekData, isCurrent bool, weekOffset int) {
+	<div id="week-container" class="card bg-base-100 shadow-xl">
+		<div class="card-body p-4 sm:p-6">
+			<div class="flex justify-between items-center mb-4">
+				<h2 class="card-title text-lg sm:text-xl flex items-center gap-2">
+					<button
+						class="btn btn-circle btn-md lg:btn-sm btn-ghost"
+						hx-get={ "/schedule?week=" + strconv.Itoa(weekOffset - 1) }
+						hx-target="#schedule-content"
+						hx-swap="innerHTML"
+						hx-include="#assignee-filter"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 lg:w-4 lg:h-4">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+						</svg>
+					</button>
+					<span>Week of { week.WeekStart }</span>
+					if isCurrent {
+						<div class="badge badge-primary badge-sm">Current</div>
+					}
+					<button
+						class="btn btn-circle btn-md lg:btn-sm btn-ghost"
+						hx-get={ "/schedule?week=" + strconv.Itoa(weekOffset + 1) }
+						hx-target="#schedule-content"
+						hx-swap="innerHTML"
+						hx-include="#assignee-filter"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 lg:w-4 lg:h-4">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+						</svg>
+					</button>
+				</h2>
+			</div>
+			if len(week.Tasks) == 0 {
+				<div class="text-center py-8">
+					<p class="text-base-content/60">No tasks scheduled this week</p>
+				</div>
+			} else {
+				<div class="overflow-x-auto -mx-4 sm:mx-0">
+					<table id="schedule-table" class="table table-xs sm:table-sm md:table-md">
+						<thead>
+							<tr>
+								<th onclick="sortTable('schedule-table', 0)" class="cursor-pointer">Task</th>
+								<th onclick="sortTable('schedule-table', 1)" class="cursor-pointer hidden sm:table-cell">Category</th>
+								<th onclick="sortTable('schedule-table', 2)" class="cursor-pointer">Who</th>
+								<th onclick="sortTable('schedule-table', 3)" class="cursor-pointer hidden sm:table-cell">Mins</th>
+								<th onclick="sortTable('schedule-table', 4)" class="cursor-pointer hidden md:table-cell">Date</th>
+								<th onclick="sortTable('schedule-table', 5)" class="cursor-pointer">Status</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							for _, task := range week.Tasks {
+								@TaskRow(task)
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+		</div>
+	</div>
+}
+
+templ TaskRow(task TaskDisplay) {
+	<tr id={ "task-" + strconv.FormatInt(task.ID, 10) }>
+		<td class="font-medium">
+			{ task.Name }
+			<div class="sm:hidden text-xs text-base-content/60">
+				{ task.Category } • { strconv.FormatInt(task.EstimatedMins, 10) }min
+			</div>
+		</td>
+		<td class="hidden sm:table-cell">
+			<span class="badge badge-ghost badge-sm">{ task.Category }</span>
+		</td>
+		<td>
+			if task.AssignedTo == "Dru" || task.AssignedTo == "dru" {
+				<span class="badge badge-info badge-xs sm:badge-sm">Dru</span>
+			} else if task.AssignedTo == "Josie" || task.AssignedTo == "josie" {
+				<span class="badge badge-secondary badge-xs sm:badge-sm">Josie</span>
+			} else {
+				<span class="badge badge-neutral badge-xs sm:badge-sm">{ task.AssignedTo }</span>
+			}
+		</td>
+		<td class="hidden sm:table-cell">{ strconv.FormatInt(task.EstimatedMins, 10) }min</td>
+		<td class="hidden md:table-cell">{ task.ScheduledDate }</td>
+		<td>
+			if task.IsCompleted {
+				<span class="badge badge-success badge-xs sm:badge-sm">Done</span>
+			} else {
+				<span class="badge badge-warning badge-xs sm:badge-sm">Pending</span>
+			}
+		</td>
+		<td>
+			<div class="flex flex-col sm:flex-row gap-1">
+				<button
+					class={ "btn btn-sm", templ.KV("btn-success", task.IsCompleted), templ.KV("btn-primary", !task.IsCompleted) }
+					hx-post={ "/tasks/instances/" + strconv.FormatInt(task.ID, 10) + "/toggle" }
+					hx-target="#schedule-content"
+					hx-swap="innerHTML"
+				>
+					if task.IsCompleted {
+						<span class="hidden sm:inline">Undo</span>
+						<span class="sm:hidden">✓</span>
+					} else {
+						<span class="hidden sm:inline">Complete</span>
+						<span class="sm:hidden">✓</span>
+					}
+				</button>
+				if task.CanBringForward && !task.IsCompleted {
+					<button
+						class="btn btn-sm btn-ghost bring-forward-btn hidden sm:inline-flex"
+						data-task-id={ strconv.FormatInt(task.ID, 10) }
+					>
+						Forward
+					</button>
+				}
+			</div>
+		</td>
+	</tr>
+}

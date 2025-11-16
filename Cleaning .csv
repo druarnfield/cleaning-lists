@@ -1,0 +1,30 @@
+Task,Category,Frequency,Assigned To,Estimated Mins
+General Bathroom,Bathroom,Weekly,Alternate,30
+Clean Bathtub,Bathroom,Monthly,Alternate,30
+Mop Bathroom,Bathroom,Monthly,Alternate,15
+Clean Fans,House,12 Weekly,Alternate,60
+Empty Fridge,Kitchen,Weekly,Both,15
+Clean Fridge Shelves,Kitchen,12 Weekly,Alternate,45
+General Kitchen Clean,Kitchen,Weekly,Alternate,30
+Clean Coffee Machine,Kitchen,Weekly,Alternate,15
+Deep Kitchen Clean,Kitchen,12 Weekly,Alternate,90
+Mop Kitchen,Kitchen,Monthly,Alternate,30
+Clean Pantry,Kitchen,26 Weekly,Both,180
+Josie Laundry,Laundry,Weekly,Josie,30
+Dru Laundry,Laundry,Weekly,Dru,30
+House Laundry,Laundry,Weekly,Alternate,30
+Change Towels,Laundry,Weekly,Alternate,15
+Change Bed Linen,Laundry,Fortnightly,Alternate,20
+Do Couch Cushions,Lounge,Weekly,Alternate,10
+Mop Lounge,Lounge,Monthly,Alternate,30
+Clean Vacuum,Lounge,Weekly,Alternate,15
+Deep Clean Bedroom,Master Bedroom,8 Weekly,Josie,60
+Deep Spare Room Clean,Spare Room,8 Weekly,Dru,100
+General Spare Room Tidy,Spare Room,Weekly,Dru,20
+Clean Drus Study Area,Study,Monthly,Dru,60
+Clean Josies Study Area,Study,Monthly,Josie,60
+General Tidy Under House,Under House,8 Weekly,Alternate,30
+Clean Big Shelf,Lounge Room,26 Weekly,Josie,180
+Deep Clean Lounge,Lounge Room,12 Weekly,Alternate,60
+Rug Vacuum,House,Fortnightly,Alternate,30
+,,,,1320

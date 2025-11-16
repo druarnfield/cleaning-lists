@@ -1,0 +1,97 @@
+package pages
+
+import (
+	"github.com/druarnfield/cleaning-scheduler/internal/auth"
+	"github.com/druarnfield/cleaning-scheduler/internal/templates/layout"
+	"fmt"
+	"strconv"
+)
+
+type CompletionStat struct {
+	WeekStart      string
+	CompletedCount int64
+	TotalCount     int64
+}
+
+type DashboardData struct {
+	DruMins         int64
+	DruHours        float64
+	JosieMins       int64
+	JosieHours      float64
+	TotalTasks      int64
+	TotalInstances  int64
+	CompletionStats []CompletionStat
+}
+
+templ DashboardPage(user *auth.User, data DashboardData) {
+	@layout.Base("Dashboard", user) {
+		<div class="space-y-6">
+			<h1 class="text-3xl font-bold">Dashboard</h1>
+			<!-- Workload Summary -->
+			<div class="grid md:grid-cols-2 gap-4">
+				<div class="stats shadow">
+					<div class="stat">
+						<div class="stat-figure text-primary">
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+							</svg>
+						</div>
+						<div class="stat-title">Dru's Weekly Workload</div>
+						<div class="stat-value text-primary">{ strconv.FormatInt(data.DruMins, 10) } mins</div>
+						<div class="stat-desc">{ fmt.Sprintf("%.1f", data.DruHours) } hours per week</div>
+					</div>
+				</div>
+				<div class="stats shadow">
+					<div class="stat">
+						<div class="stat-figure text-secondary">
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+							</svg>
+						</div>
+						<div class="stat-title">Josie's Weekly Workload</div>
+						<div class="stat-value text-secondary">{ strconv.FormatInt(data.JosieMins, 10) } mins</div>
+						<div class="stat-desc">{ fmt.Sprintf("%.1f", data.JosieHours) } hours per week</div>
+					</div>
+				</div>
+			</div>
+			<!-- Task Statistics -->
+			<div class="grid md:grid-cols-2 gap-4">
+				<div class="card bg-base-100 shadow-xl">
+					<div class="card-body">
+						<h2 class="card-title">Task Statistics</h2>
+						<div class="stats stats-vertical">
+							<div class="stat">
+								<div class="stat-title">Total Tasks</div>
+								<div class="stat-value">{ strconv.FormatInt(data.TotalTasks, 10) }</div>
+							</div>
+							<div class="stat">
+								<div class="stat-title">Active Instances</div>
+								<div class="stat-value">{ strconv.FormatInt(data.TotalInstances, 10) }</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="card bg-base-100 shadow-xl">
+					<div class="card-body">
+						<h2 class="card-title">Weekly Completion Rate</h2>
+						if len(data.CompletionStats) > 0 {
+							<div class="space-y-2">
+								for _, stat := range data.CompletionStats {
+									<div>
+										<div class="flex justify-between mb-1">
+											<span>{ stat.WeekStart }</span>
+											<span>{ strconv.FormatInt(stat.CompletedCount, 10) }/{ strconv.FormatInt(stat.TotalCount, 10) }</span>
+										</div>
+										<progress class="progress progress-primary" value={ strconv.FormatInt(stat.CompletedCount, 10) } max={ strconv.FormatInt(stat.TotalCount, 10) }></progress>
+									</div>
+								}
+							</div>
+						} else {
+							<p class="text-base-content/60">No completion data available yet.</p>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}

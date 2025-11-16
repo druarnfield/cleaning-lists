@@ -1,0 +1,346 @@
+package pages
+
+import (
+	"github.com/druarnfield/cleaning-scheduler/internal/auth"
+	"github.com/druarnfield/cleaning-scheduler/internal/templates/layout"
+	"database/sql"
+	"strconv"
+)
+
+type TaskItem struct {
+	ID              int64
+	Name            string
+	Category        string
+	Frequency       string
+	DefaultAssignee sql.NullString
+	EstimatedMins   int64
+	NextScheduledDate sql.NullTime
+	NextAssignedTo    sql.NullString
+}
+
+type TasksPageData struct {
+	Tasks []TaskItem
+}
+
+templ TasksPage(user *auth.User, data TasksPageData) {
+	@layout.Base("Tasks", user) {
+		<div class="space-y-6">
+			<div class="flex justify-between items-center">
+				<h1 class="text-3xl font-bold flex items-center gap-3">
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-primary">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h4.125M8.25 8.25V6.108" />
+					</svg>
+					Tasks Management
+				</h1>
+				<button class="btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-200 font-semibold" onclick="document.getElementById('add_task_modal').showModal()">
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+					</svg>
+					Add Task
+				</button>
+			</div>
+			<div class="card bg-base-100 shadow-xl">
+				<div class="card-body">
+					<h2 class="card-title">Task List</h2>
+					<div class="overflow-x-auto -mx-4 sm:mx-0">
+						<table id="tasks-table" class="table table-zebra table-xs sm:table-sm md:table-md">
+							<thead>
+								<tr>
+									<th onclick="sortTable('tasks-table', 0)" class="cursor-pointer">Name</th>
+									<th onclick="sortTable('tasks-table', 1)" class="cursor-pointer hidden sm:table-cell">Category</th>
+									<th onclick="sortTable('tasks-table', 2)" class="cursor-pointer hidden md:table-cell">Frequency</th>
+									<th onclick="sortTable('tasks-table', 3)" class="cursor-pointer">Assigned</th>
+									<th onclick="sortTable('tasks-table', 4)" class="cursor-pointer hidden sm:table-cell">Mins</th>
+									<th onclick="sortTable('tasks-table', 5)" class="cursor-pointer hidden lg:table-cell">Next</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								for _, task := range data.Tasks {
+									@TaskRowEdit(task)
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Add Task Modal -->
+		<dialog id="add_task_modal" class="modal modal-bottom sm:modal-middle">
+			<div class="modal-box">
+				<h3 class="font-bold text-lg">Add Task</h3>
+				<form method="POST" action="/tasks">
+					<div class="form-control">
+						<label class="label"><span class="label-text">Name</span></label>
+						<input type="text" name="name" class="input input-bordered" required/>
+					</div>
+					<div class="form-control">
+						<label class="label"><span class="label-text">Category</span></label>
+						<input type="text" name="category" class="input input-bordered" required/>
+					</div>
+					<div class="form-control">
+						<label class="label"><span class="label-text">Frequency</span></label>
+						<input type="text" name="frequency" class="input input-bordered" placeholder="Weekly, Daily, 2x/week, etc." required/>
+					</div>
+					<div class="form-control">
+						<label class="label"><span class="label-text">Assigned To</span></label>
+						<select name="assigned_to" class="select select-bordered">
+							<option value="">Alternate</option>
+							<option value="dru">Dru</option>
+							<option value="josie">Josie</option>
+							<option value="both">Both</option>
+						</select>
+					</div>
+					<div class="form-control">
+						<label class="label"><span class="label-text">Estimated Minutes</span></label>
+						<input type="number" name="estimated_mins" class="input input-bordered" required/>
+					</div>
+					<div class="modal-action">
+						<button type="button" class="btn" onclick="document.getElementById('add_task_modal').close()">Cancel</button>
+						<button type="submit" class="btn btn-primary">Add Task</button>
+					</div>
+				</form>
+			</div>
+			<form method="dialog" class="modal-backdrop">
+				<button>close</button>
+			</form>
+		</dialog>
+
+		<style>
+			tbody tr:hover {
+				transform: translateY(-1px);
+				box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+			}
+			.table tbody tr {
+				transition: all 0.2s ease;
+			}
+			.sort-asc::after {
+				content: ' ↑';
+				opacity: 0.7;
+				color: #3b82f6;
+				font-weight: bold;
+			}
+			.sort-desc::after {
+				content: ' ↓';
+				opacity: 0.7;
+				color: #3b82f6;
+				font-weight: bold;
+			}
+			th {
+				user-select: none;
+			}
+			th.cursor-pointer:hover {
+				background-color: rgba(0,0,0,0.08);
+			}
+		</style>
+
+		<!-- Edit Task Modal -->
+		<dialog id="edit_task_modal" class="modal modal-bottom sm:modal-middle">
+			<div class="modal-box">
+				<h3 class="font-bold text-lg">Edit Task</h3>
+				<form id="edit-task-form" hx-post="#" hx-swap="outerHTML" hx-target="#task-row">
+					<input type="hidden" id="edit-task-id" name="id"/>
+					<div class="form-control">
+						<label class="label"><span class="label-text">Name</span></label>
+						<input type="text" id="edit-name" name="name" class="input input-bordered" required/>
+					</div>
+					<div class="form-control">
+						<label class="label"><span class="label-text">Category</span></label>
+						<input type="text" id="edit-category" name="category" class="input input-bordered" required/>
+					</div>
+					<div class="form-control">
+						<label class="label"><span class="label-text">Frequency</span></label>
+						<input type="text" id="edit-frequency" name="frequency" class="input input-bordered" placeholder="Weekly, Daily, 2x/week, etc." required/>
+					</div>
+					<div class="form-control">
+						<label class="label"><span class="label-text">Assigned To</span></label>
+						<select id="edit-assigned-to" name="assigned_to" class="select select-bordered">
+							<option value="">Alternate</option>
+							<option value="dru">Dru</option>
+							<option value="josie">Josie</option>
+							<option value="both">Both</option>
+						</select>
+					</div>
+					<div class="form-control">
+						<label class="label"><span class="label-text">Estimated Minutes</span></label>
+						<input type="number" id="edit-estimated-mins" name="estimated_mins" class="input input-bordered" required/>
+					</div>
+					<div class="modal-action">
+						<button type="button" class="btn" onclick="document.getElementById('edit_task_modal').close()">Cancel</button>
+						<button type="submit" class="btn btn-primary">Update Task</button>
+					</div>
+				</form>
+			</div>
+			<form method="dialog" class="modal-backdrop">
+				<button>close</button>
+			</form>
+		</dialog>
+
+		<script>
+			function editTask(button) {
+				const taskId = button.getAttribute('data-task-id');
+				const taskName = button.getAttribute('data-task-name');
+				const taskCategory = button.getAttribute('data-task-category');
+				const taskFrequency = button.getAttribute('data-task-frequency');
+				const taskAssigned = button.getAttribute('data-task-assigned');
+				const taskMins = button.getAttribute('data-task-mins');
+
+				// Update form htmx attributes
+				const form = document.getElementById('edit-task-form');
+				form.setAttribute('hx-post', `/tasks/${taskId}`);
+				form.setAttribute('hx-target', `#task-${taskId}`);
+
+				// Process the form with htmx
+				htmx.process(form);
+
+				// Populate form fields
+				document.getElementById('edit-task-id').value = taskId;
+				document.getElementById('edit-name').value = taskName;
+				document.getElementById('edit-category').value = taskCategory;
+				document.getElementById('edit-frequency').value = taskFrequency;
+				document.getElementById('edit-assigned-to').value = taskAssigned;
+				document.getElementById('edit-estimated-mins').value = taskMins;
+
+				// Show the modal
+				document.getElementById('edit_task_modal').showModal();
+			}
+
+			// Handle edit button clicks
+			document.addEventListener('click', function(e) {
+				if (e.target.classList.contains('edit-task-btn')) {
+					editTask(e.target);
+				}
+			});
+
+			// Close modal after successful update
+			document.body.addEventListener('htmx:afterSwap', function(evt) {
+				if (evt.detail.target.id && evt.detail.target.id.startsWith('task-')) {
+					// Close the edit modal if it's open
+					const modal = document.getElementById('edit_task_modal');
+					if (modal && modal.open) {
+						modal.close();
+					}
+				}
+			});
+
+			// Sort table function
+			function sortTable(tableId, column) {
+				const table = document.getElementById(tableId);
+				const tbody = table.querySelector('tbody');
+				const rows = Array.from(tbody.querySelectorAll('tr'));
+				const isAscending = table.getAttribute('data-sort-column') === column.toString() &&
+								   table.getAttribute('data-sort-dir') === 'asc';
+
+				rows.sort((a, b) => {
+					const aText = a.cells[column].innerText;
+					const bText = b.cells[column].innerText;
+
+					// Try to parse as numbers first
+					const aNum = parseFloat(aText);
+					const bNum = parseFloat(bText);
+
+					if (!isNaN(aNum) && !isNaN(bNum)) {
+						return isAscending ? bNum - aNum : aNum - bNum;
+					}
+
+					// Otherwise sort as text
+					return isAscending ?
+						bText.localeCompare(aText) :
+						aText.localeCompare(bText);
+				});
+
+				// Clear tbody and re-add sorted rows
+				tbody.innerHTML = '';
+				rows.forEach(row => tbody.appendChild(row));
+
+				// Update sort attributes
+				table.setAttribute('data-sort-column', column);
+				table.setAttribute('data-sort-dir', isAscending ? 'desc' : 'asc');
+
+				// Update sort indicators
+				const headers = table.querySelectorAll('th');
+				headers.forEach((header, idx) => {
+					header.classList.remove('sort-asc', 'sort-desc');
+					if (idx === column) {
+						header.classList.add(isAscending ? 'sort-desc' : 'sort-asc');
+					}
+				});
+			}
+		</script>
+	}
+}
+
+templ TaskRowEdit(task TaskItem) {
+	<tr id={ "task-" + strconv.FormatInt(task.ID, 10) }>
+		<td>
+			<div class="font-medium">{ task.Name }</div>
+			<div class="text-xs text-base-content/60 sm:hidden mt-1">
+				{ task.Category } • { task.Frequency } • { strconv.FormatInt(task.EstimatedMins, 10) }min
+			</div>
+		</td>
+		<td class="hidden sm:table-cell">
+			<span class="badge badge-ghost badge-sm">{ task.Category }</span>
+		</td>
+		<td class="hidden md:table-cell">
+			<span class="badge badge-outline badge-sm">{ task.Frequency }</span>
+		</td>
+		<td>
+			if task.DefaultAssignee.Valid {
+				if task.DefaultAssignee.String == "dru" {
+					<span class="badge badge-info badge-sm">Dru</span>
+				} else if task.DefaultAssignee.String == "josie" {
+					<span class="badge badge-secondary badge-sm">Josie</span>
+				} else if task.DefaultAssignee.String == "both" {
+					<span class="badge badge-accent badge-sm">Both</span>
+				} else {
+					<span class="badge badge-neutral badge-sm">{ task.DefaultAssignee.String }</span>
+				}
+			} else {
+				<span class="badge badge-warning badge-sm">Alternate</span>
+			}
+		</td>
+		<td class="hidden sm:table-cell">{ strconv.FormatInt(task.EstimatedMins, 10) }min</td>
+		<td class="hidden lg:table-cell">
+			if task.NextScheduledDate.Valid {
+				<div class="text-sm">
+					<div>{ task.NextScheduledDate.Time.Format("Jan 2") }</div>
+					if task.NextAssignedTo.Valid {
+						if task.NextAssignedTo.String == "dru" {
+							<span class="badge badge-info badge-xs">Dru</span>
+						} else if task.NextAssignedTo.String == "josie" {
+							<span class="badge badge-secondary badge-xs">Josie</span>
+						} else {
+							<span class="badge badge-neutral badge-xs">{ task.NextAssignedTo.String }</span>
+						}
+					}
+				</div>
+			} else {
+				<span class="text-gray-400">Not scheduled</span>
+			}
+		</td>
+		<td>
+			<div class="flex gap-1">
+				<button
+					class="btn btn-sm btn-ghost edit-task-btn"
+					data-task-id={ strconv.FormatInt(task.ID, 10) }
+					data-task-name={ task.Name }
+					data-task-category={ task.Category }
+					data-task-frequency={ task.Frequency }
+					if task.DefaultAssignee.Valid {
+						data-task-assigned={ task.DefaultAssignee.String }
+					} else {
+						data-task-assigned=""
+					}
+					data-task-mins={ strconv.FormatInt(task.EstimatedMins, 10) }
+				>Edit</button>
+				<button
+					class="btn btn-sm btn-error"
+					hx-delete={ "/tasks/" + strconv.FormatInt(task.ID, 10) }
+					hx-target={ "#task-" + strconv.FormatInt(task.ID, 10) }
+					hx-swap="outerHTML swap:1s"
+					hx-confirm="Are you sure you want to delete this task?"
+				>Delete</button>
+			</div>
+		</td>
+	</tr>
+}

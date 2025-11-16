@@ -1,0 +1,55 @@
+{{define "schedule.html"}}
+{{template "base.html" .}}
+{{end}}
+
+{{define "content"}}
+<div class="space-y-6">
+    <h1 class="text-3xl font-bold">Cleaning Schedule</h1>
+
+    <!-- Previous Week -->
+    <div id="prev-week">
+        {{template "week_card" .PrevWeek}}
+    </div>
+
+    <!-- Current Week (Highlighted) -->
+    <div id="current-week" class="ring-2 ring-primary rounded-lg">
+        {{template "week_card" .CurrentWeek}}
+    </div>
+
+    <!-- Next Week -->
+    <div id="next-week">
+        {{template "week_card" .NextWeek}}
+    </div>
+</div>
+
+<!-- Bring Forward Modal -->
+<dialog id="bring_forward_modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Bring Task Forward</h3>
+        <form method="POST" id="bring-forward-form" hx-post="#" hx-swap="outerHTML" hx-target="#current-week .card">
+            <div class="form-control my-4">
+                <label class="label">
+                    <span class="label-text">Select Date</span>
+                </label>
+                <input type="date" name="target_date" class="input input-bordered" required>
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn" onclick="document.getElementById('bring_forward_modal').close()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Bring Forward</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<script>
+function bringForwardModal(taskId) {
+    const form = document.getElementById('bring-forward-form');
+    form.setAttribute('hx-post', `/tasks/${taskId}/bring-forward`);
+    htmx.process(form);
+    document.getElementById('bring_forward_modal').showModal();
+}
+</script>
+{{end}}

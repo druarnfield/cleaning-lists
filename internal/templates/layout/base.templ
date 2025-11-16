@@ -1,0 +1,99 @@
+package layout
+
+import (
+	"github.com/druarnfield/cleaning-scheduler/internal/auth"
+)
+
+templ Base(title string, user *auth.User) {
+	<!DOCTYPE html>
+	<html lang="en" data-theme="light">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title } - Cleaning Scheduler</title>
+			<link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css"/>
+			<script src="https://cdn.tailwindcss.com"></script>
+			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+		</head>
+		<body class="bg-base-200 min-h-screen">
+			if user != nil {
+				@Nav(user)
+			}
+			<main class="container mx-auto px-4 py-8 max-w-6xl">
+				{ children... }
+			</main>
+		</body>
+	</html>
+}
+
+templ Nav(user *auth.User) {
+	<div class="navbar bg-base-100 shadow-lg">
+		<div class="navbar-start">
+			<!-- Mobile menu button -->
+			<div class="dropdown">
+				<label tabindex="0" class="btn btn-ghost btn-square lg:hidden hover:bg-base-300 active:bg-base-300">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" />
+					</svg>
+				</label>
+				if user != nil {
+					<ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+						<li><a href="/schedule">Schedule</a></li>
+						<li><a href="/tasks">Tasks</a></li>
+						<li><a href="/dashboard">Dashboard</a></li>
+						<li><a href="/import">Import</a></li>
+						<li class="menu-title">
+							<span>{ user.Username }</span>
+						</li>
+						<li><a href="/reset-password">Reset Password</a></li>
+						<li>
+							<form method="POST" action="/logout" class="w-full">
+								<button type="submit" class="w-full text-left px-4 py-2 hover:bg-base-200 rounded-lg text-error">
+									Logout
+								</button>
+							</form>
+						</li>
+					</ul>
+				}
+			</div>
+			<a href="/" class="btn btn-ghost text-lg sm:text-xl normal-case">
+				<span class="hidden sm:inline">Cleaning Scheduler</span>
+				<span class="sm:hidden">Scheduler</span>
+			</a>
+		</div>
+
+		<!-- Desktop menu -->
+		<div class="navbar-end hidden lg:flex">
+			if user != nil {
+				<ul class="menu menu-horizontal px-1">
+					<li><a href="/schedule">Schedule</a></li>
+					<li><a href="/tasks">Tasks</a></li>
+					<li><a href="/dashboard">Dashboard</a></li>
+					<li><a href="/import">Import</a></li>
+					<li>
+						<details>
+							<summary>{ user.Username }</summary>
+							<ul class="p-2 bg-base-100 z-10 rounded-box shadow right-0">
+								<li><a href="/reset-password">Reset Password</a></li>
+								<li>
+									<form method="POST" action="/logout" class="w-full">
+										<button type="submit" class="w-full text-left px-4 py-2 hover:bg-base-200 rounded-lg text-error">
+											Logout
+										</button>
+									</form>
+								</li>
+							</ul>
+						</details>
+					</li>
+				</ul>
+			}
+		</div>
+
+		<!-- Mobile user info -->
+		<div class="navbar-end lg:hidden">
+			if user != nil {
+				<div class="badge badge-ghost">{ user.Username }</div>
+			}
+		</div>
+	</div>
+}

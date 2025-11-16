@@ -1,0 +1,37 @@
+# Git
+.git
+.gitignore
+
+# Development files
+*.db
+*.db-shm
+*.db-wal
+tmp/
+bin/
+.air.toml
+
+# Documentation
+*.md
+!README.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+cookies.txt
+
+# Personal data
+*.csv
+
+# Build artifacts
+server
