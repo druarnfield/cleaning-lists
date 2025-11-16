@@ -36,3 +36,5 @@ air_errors.log
 
 # Mac
 .DS_Store
+
+*.db*
