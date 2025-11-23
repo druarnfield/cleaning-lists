@@ -57,7 +57,7 @@ func ShoppingPage(user *auth.User, data ShoppingPageData) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\"><div class=\"flex justify-between items-center\"><h1 class=\"text-3xl font-bold\">Shopping List</h1><button class=\"btn btn-primary\" onclick=\"openAddItemModal()\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-5 h-5\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 4.5v15m7.5-7.5h-15\"></path></svg> Add Items</button></div><div id=\"shopping-content\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\"><div class=\"flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4\"><h1 class=\"text-3xl font-bold\">Shopping List</h1><button class=\"btn btn-primary btn-sm sm:btn-md\" onclick=\"openAddItemModal()\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-5 h-5\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 4.5v15m7.5-7.5h-15\"></path></svg> <span class=\"hidden sm:inline\">Add Items</span></button></div><div id=\"shopping-content\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -65,7 +65,7 @@ func ShoppingPage(user *auth.User, data ShoppingPageData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div></div><!-- Add Item Modal --> <dialog id=\"add_item_modal\" class=\"modal modal-bottom sm:modal-middle\"><div class=\"modal-box max-w-2xl\"><h3 class=\"font-bold text-lg mb-4\">Add Shopping Items</h3><!-- Single Item Form --><form method=\"POST\" action=\"/shopping/items\" id=\"add-item-form\"><input type=\"hidden\" name=\"week_start\" id=\"modal-week-start\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div></div><!-- Add Item Modal --> <dialog id=\"add_item_modal\" class=\"modal modal-bottom sm:modal-middle\"><div class=\"modal-box max-w-2xl p-4 sm:p-6\"><h3 class=\"font-bold text-base sm:text-lg mb-3 sm:mb-4\">Add Shopping Items</h3><!-- Single Item Form --><form method=\"POST\" action=\"/shopping/items\" id=\"add-item-form\"><input type=\"hidden\" name=\"week_start\" id=\"modal-week-start\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -91,7 +91,7 @@ func ShoppingPage(user *auth.User, data ShoppingPageData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><h4 class=\"font-semibold mb-2\">Add Single Item</h4><div class=\"grid grid-cols-1 md:grid-cols-3 gap-3 mb-4\"><div><label class=\"label\"><span class=\"label-text\">Item Name</span></label> <input type=\"text\" name=\"name\" id=\"modal-item-name\" class=\"input input-bordered w-full\" placeholder=\"e.g., Tomatoes\" required></div><div><label class=\"label\"><span class=\"label-text\">Meal (Optional)</span></label> <input type=\"text\" name=\"meal\" id=\"modal-item-meal\" class=\"input input-bordered w-full\" placeholder=\"e.g., Monday Dinner\"></div><div><label class=\"label\"><span class=\"label-text\">Quantity</span></label> <input type=\"number\" name=\"quantity\" class=\"input input-bordered w-full\" value=\"1\" min=\"1\"></div></div><div class=\"divider\">OR</div><!-- Quick Add Meal --><h4 class=\"font-semibold mb-2\">Quick Add Meal</h4><div class=\"flex gap-2 mb-4\"><select id=\"modal-quick-add-meal\" class=\"select select-bordered flex-1\"><option value=\"\" disabled selected>Select a meal to add all items...</option></select> <button type=\"button\" class=\"btn btn-secondary\" onclick=\"quickAddMealFromModal()\">Quick Add</button></div><div class=\"modal-action\"><button type=\"button\" class=\"btn\" onclick=\"document.getElementById('add_item_modal').close()\">Cancel</button> <button type=\"submit\" class=\"btn btn-primary\">Add Item</button></div></form></div><form method=\"dialog\" class=\"modal-backdrop\"><button>close</button></form></dialog><script>\n\t\t\t// Update modal week values when shopping content changes\n\t\t\tfunction updateModalWeekValues() {\n\t\t\t\tconst contentDiv = document.getElementById('shopping-content');\n\t\t\t\tif (!contentDiv) return;\n\n\t\t\t\t// Try to find week start and offset from the shopping content\n\t\t\t\tconst weekStartInput = contentDiv.querySelector('input[name=\"week_start\"]');\n\t\t\t\tconst weekOffsetInput = contentDiv.querySelector('input[name=\"week_offset\"]');\n\n\t\t\t\tif (weekStartInput && weekOffsetInput) {\n\t\t\t\t\tdocument.getElementById('modal-week-start').value = weekStartInput.value;\n\t\t\t\t\tdocument.getElementById('modal-week-offset').value = weekOffsetInput.value;\n\t\t\t\t}\n\t\t\t}\n\n\t\t\t// Load meals into dropdown\n\t\t\tasync function loadMealsDropdown() {\n\t\t\t\tconst response = await fetch('/shopping/autocomplete/meals?q=');\n\t\t\t\tconst meals = await response.json();\n\n\t\t\t\tconst select = document.getElementById('modal-quick-add-meal');\n\t\t\t\t// Reset to default option\n\t\t\t\tselect.innerHTML = '<option value=\"\" disabled selected>Select a meal to add all items...</option>';\n\n\t\t\t\tmeals.forEach(m => {\n\t\t\t\t\tconst option = document.createElement('option');\n\t\t\t\t\toption.value = m.meal;\n\t\t\t\t\toption.textContent = m.meal;\n\t\t\t\t\tselect.appendChild(option);\n\t\t\t\t});\n\t\t\t}\n\n\t\t\t// Update modal values and load meals when modal opens\n\t\t\tfunction openAddItemModal() {\n\t\t\t\tupdateModalWeekValues();\n\t\t\t\tloadMealsDropdown();\n\t\t\t\tdocument.getElementById('add_item_modal').showModal();\n\t\t\t}\n\n\t\t\t// Load meals when page loads\n\t\t\tdocument.addEventListener('DOMContentLoaded', loadMealsDropdown);\n\n\t\t\t// Update modal values after HTMX swaps\n\t\t\tdocument.body.addEventListener('htmx:afterSwap', function(evt) {\n\t\t\t\tif (evt.detail.target.id === 'shopping-content') {\n\t\t\t\t\tupdateModalWeekValues();\n\t\t\t\t}\n\t\t\t});\n\n\t\t\tfunction quickAddMealFromModal() {\n\t\t\t\tconst select = document.getElementById('modal-quick-add-meal');\n\t\t\t\tconst meal = select.value;\n\t\t\t\tif (!meal) {\n\t\t\t\t\talert('Please select a meal');\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tconst weekStart = document.getElementById('modal-week-start').value;\n\t\t\t\tconst weekOffset = document.getElementById('modal-week-offset').value;\n\n\t\t\t\twindow.location.href = `/shopping/meals/${encodeURIComponent(meal)}/quick-add?week_start=${weekStart}&week_offset=${weekOffset}`;\n\t\t\t}\n\n\t\t\t// Item name autocomplete in modal\n\t\t\tlet itemTimeout;\n\t\t\tdocument.getElementById('modal-item-name').addEventListener('input', async (e) => {\n\t\t\t\tclearTimeout(itemTimeout);\n\t\t\t\tconst query = e.target.value;\n\t\t\t\tif (query.length < 2) return;\n\n\t\t\t\titemTimeout = setTimeout(async () => {\n\t\t\t\t\tconst response = await fetch(`/shopping/autocomplete/items?q=${encodeURIComponent(query)}`);\n\t\t\t\t\tconst items = await response.json();\n\n\t\t\t\t\t// Remove existing datalist if any\n\t\t\t\t\tlet datalist = document.getElementById('modal-item-suggestions');\n\t\t\t\t\tif (!datalist) {\n\t\t\t\t\t\tdatalist = document.createElement('datalist');\n\t\t\t\t\t\tdatalist.id = 'modal-item-suggestions';\n\t\t\t\t\t\tdocument.body.appendChild(datalist);\n\t\t\t\t\t\tdocument.getElementById('modal-item-name').setAttribute('list', 'modal-item-suggestions');\n\t\t\t\t\t}\n\n\t\t\t\t\tdatalist.innerHTML = items.map(item =>\n\t\t\t\t\t\t`<option value=\"${item.name}\">${item.meal ? ` (${item.meal})` : ''}</option>`\n\t\t\t\t\t).join('');\n\t\t\t\t}, 300);\n\t\t\t});\n\n\t\t\t// Meal autocomplete in modal\n\t\t\tlet mealTimeout;\n\t\t\tdocument.getElementById('modal-item-meal').addEventListener('input', async (e) => {\n\t\t\t\tclearTimeout(mealTimeout);\n\t\t\t\tconst query = e.target.value;\n\t\t\t\tif (query.length < 2) return;\n\n\t\t\t\tmealTimeout = setTimeout(async () => {\n\t\t\t\t\tconst response = await fetch(`/shopping/autocomplete/meals?q=${encodeURIComponent(query)}`);\n\t\t\t\t\tconst meals = await response.json();\n\n\t\t\t\t\t// Remove existing datalist if any\n\t\t\t\t\tlet datalist = document.getElementById('modal-meal-suggestions');\n\t\t\t\t\tif (!datalist) {\n\t\t\t\t\t\tdatalist = document.createElement('datalist');\n\t\t\t\t\t\tdatalist.id = 'modal-meal-suggestions';\n\t\t\t\t\t\tdocument.body.appendChild(datalist);\n\t\t\t\t\t\tdocument.getElementById('modal-item-meal').setAttribute('list', 'modal-meal-suggestions');\n\t\t\t\t\t}\n\n\t\t\t\t\tdatalist.innerHTML = meals.map(m => `<option value=\"${m.meal}\"></option>`).join('');\n\t\t\t\t}, 300);\n\t\t\t});\n\t\t</script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><h4 class=\"font-semibold text-sm sm:text-base mb-2\">Add Single Item</h4><div class=\"grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4\"><div><label class=\"label py-1\"><span class=\"label-text text-xs sm:text-sm\">Item Name</span></label> <input type=\"text\" name=\"name\" id=\"modal-item-name\" class=\"input input-bordered input-sm sm:input-md w-full\" placeholder=\"e.g., Tomatoes\" required></div><div><label class=\"label py-1\"><span class=\"label-text text-xs sm:text-sm\">Meal (Optional)</span></label> <input type=\"text\" name=\"meal\" id=\"modal-item-meal\" class=\"input input-bordered input-sm sm:input-md w-full\" placeholder=\"e.g., Monday Dinner\"></div><div><label class=\"label py-1\"><span class=\"label-text text-xs sm:text-sm\">Quantity</span></label> <input type=\"number\" name=\"quantity\" class=\"input input-bordered input-sm sm:input-md w-full\" value=\"1\" min=\"1\"></div></div><div class=\"divider text-xs sm:text-sm my-3 sm:my-4\">OR</div><!-- Quick Add Meal --><h4 class=\"font-semibold text-sm sm:text-base mb-2\">Quick Add Meal</h4><div class=\"flex flex-col sm:flex-row gap-2 mb-3 sm:mb-4\"><select id=\"modal-quick-add-meal\" class=\"select select-bordered select-sm sm:select-md flex-1\"><option value=\"\" disabled selected>Select a meal to add all items...</option></select> <button type=\"button\" class=\"btn btn-secondary btn-sm sm:btn-md\" onclick=\"quickAddMealFromModal()\">Quick Add</button></div><div class=\"modal-action flex-col sm:flex-row gap-2\"><button type=\"button\" class=\"btn btn-sm sm:btn-md order-2 sm:order-1\" onclick=\"document.getElementById('add_item_modal').close()\">Cancel</button> <button type=\"submit\" class=\"btn btn-primary btn-sm sm:btn-md order-1 sm:order-2\">Add Item</button></div></form></div><form method=\"dialog\" class=\"modal-backdrop\"><button>close</button></form></dialog><script>\n\t\t\t// Update modal week values when shopping content changes\n\t\t\tfunction updateModalWeekValues() {\n\t\t\t\tconst contentDiv = document.getElementById('shopping-content');\n\t\t\t\tif (!contentDiv) return;\n\n\t\t\t\t// Try to find week start and offset from the shopping content\n\t\t\t\tconst weekStartInput = contentDiv.querySelector('input[name=\"week_start\"]');\n\t\t\t\tconst weekOffsetInput = contentDiv.querySelector('input[name=\"week_offset\"]');\n\n\t\t\t\tif (weekStartInput && weekOffsetInput) {\n\t\t\t\t\tdocument.getElementById('modal-week-start').value = weekStartInput.value;\n\t\t\t\t\tdocument.getElementById('modal-week-offset').value = weekOffsetInput.value;\n\t\t\t\t}\n\t\t\t}\n\n\t\t\t// Load meals into dropdown\n\t\t\tasync function loadMealsDropdown() {\n\t\t\t\tconst response = await fetch('/shopping/autocomplete/meals?q=');\n\t\t\t\tconst meals = await response.json();\n\n\t\t\t\tconst select = document.getElementById('modal-quick-add-meal');\n\t\t\t\t// Reset to default option\n\t\t\t\tselect.innerHTML = '<option value=\"\" disabled selected>Select a meal to add all items...</option>';\n\n\t\t\t\tmeals.forEach(m => {\n\t\t\t\t\tconst option = document.createElement('option');\n\t\t\t\t\toption.value = m.meal;\n\t\t\t\t\toption.textContent = m.meal;\n\t\t\t\t\tselect.appendChild(option);\n\t\t\t\t});\n\t\t\t}\n\n\t\t\t// Update modal values and load meals when modal opens\n\t\t\tfunction openAddItemModal() {\n\t\t\t\tupdateModalWeekValues();\n\t\t\t\tloadMealsDropdown();\n\t\t\t\tdocument.getElementById('add_item_modal').showModal();\n\t\t\t}\n\n\t\t\t// Load meals when page loads\n\t\t\tdocument.addEventListener('DOMContentLoaded', loadMealsDropdown);\n\n\t\t\t// Update modal values after HTMX swaps\n\t\t\tdocument.body.addEventListener('htmx:afterSwap', function(evt) {\n\t\t\t\tif (evt.detail.target.id === 'shopping-content') {\n\t\t\t\t\tupdateModalWeekValues();\n\t\t\t\t}\n\t\t\t});\n\n\t\t\tfunction quickAddMealFromModal() {\n\t\t\t\tconst select = document.getElementById('modal-quick-add-meal');\n\t\t\t\tconst meal = select.value;\n\t\t\t\tif (!meal) {\n\t\t\t\t\talert('Please select a meal');\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tconst weekStart = document.getElementById('modal-week-start').value;\n\t\t\t\tconst weekOffset = document.getElementById('modal-week-offset').value;\n\n\t\t\t\twindow.location.href = `/shopping/meals/${encodeURIComponent(meal)}/quick-add?week_start=${weekStart}&week_offset=${weekOffset}`;\n\t\t\t}\n\n\t\t\t// Item name autocomplete in modal\n\t\t\tlet itemTimeout;\n\t\t\tdocument.getElementById('modal-item-name').addEventListener('input', async (e) => {\n\t\t\t\tclearTimeout(itemTimeout);\n\t\t\t\tconst query = e.target.value;\n\t\t\t\tif (query.length < 2) return;\n\n\t\t\t\titemTimeout = setTimeout(async () => {\n\t\t\t\t\tconst response = await fetch(`/shopping/autocomplete/items?q=${encodeURIComponent(query)}`);\n\t\t\t\t\tconst items = await response.json();\n\n\t\t\t\t\t// Remove existing datalist if any\n\t\t\t\t\tlet datalist = document.getElementById('modal-item-suggestions');\n\t\t\t\t\tif (!datalist) {\n\t\t\t\t\t\tdatalist = document.createElement('datalist');\n\t\t\t\t\t\tdatalist.id = 'modal-item-suggestions';\n\t\t\t\t\t\tdocument.body.appendChild(datalist);\n\t\t\t\t\t\tdocument.getElementById('modal-item-name').setAttribute('list', 'modal-item-suggestions');\n\t\t\t\t\t}\n\n\t\t\t\t\tdatalist.innerHTML = items.map(item =>\n\t\t\t\t\t\t`<option value=\"${item.name}\">${item.meal ? ` (${item.meal})` : ''}</option>`\n\t\t\t\t\t).join('');\n\t\t\t\t}, 300);\n\t\t\t});\n\n\t\t\t// Meal autocomplete in modal\n\t\t\tlet mealTimeout;\n\t\t\tdocument.getElementById('modal-item-meal').addEventListener('input', async (e) => {\n\t\t\t\tclearTimeout(mealTimeout);\n\t\t\t\tconst query = e.target.value;\n\t\t\t\tif (query.length < 2) return;\n\n\t\t\t\tmealTimeout = setTimeout(async () => {\n\t\t\t\t\tconst response = await fetch(`/shopping/autocomplete/meals?q=${encodeURIComponent(query)}`);\n\t\t\t\t\tconst meals = await response.json();\n\n\t\t\t\t\t// Remove existing datalist if any\n\t\t\t\t\tlet datalist = document.getElementById('modal-meal-suggestions');\n\t\t\t\t\tif (!datalist) {\n\t\t\t\t\t\tdatalist = document.createElement('datalist');\n\t\t\t\t\t\tdatalist.id = 'modal-meal-suggestions';\n\t\t\t\t\t\tdocument.body.appendChild(datalist);\n\t\t\t\t\t\tdocument.getElementById('modal-item-meal').setAttribute('list', 'modal-meal-suggestions');\n\t\t\t\t\t}\n\n\t\t\t\t\tdatalist.innerHTML = meals.map(m => `<option value=\"${m.meal}\"></option>`).join('');\n\t\t\t\t}, 300);\n\t\t\t});\n\t\t</script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -152,7 +152,7 @@ func ShoppingContent(data ShoppingPageData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"><!-- Week Navigation --><div class=\"flex justify-between items-center\"><button class=\"btn btn-outline btn-sm\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"><!-- Week Navigation --><div class=\"flex justify-center items-center gap-2 sm:gap-4\"><button class=\"btn btn-circle btn-md lg:btn-sm btn-ghost\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -165,56 +165,66 @@ func ShoppingContent(data ShoppingPageData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-target=\"#shopping-content\" hx-swap=\"innerHTML\">← Previous Week</button><div class=\"text-center\"><h2 class=\"text-xl font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-target=\"#shopping-content\" hx-swap=\"innerHTML\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-5 h-5 lg:w-4 lg:h-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M15.75 19.5L8.25 12l7.5-7.5\"></path></svg></button><div class=\"text-center\"><h2 class=\"text-lg sm:text-xl font-semibold flex items-center gap-2 justify-center\"><span>Week of ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 string
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(data.WeekLabel)
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(data.WeekStart)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 250, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 253, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</h2><p class=\"text-sm text-base-content/60\">Week of ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if data.IsCurrentWeek {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"badge badge-primary badge-xs sm:badge-sm\">Current</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</h2><p class=\"text-xs sm:text-sm text-base-content/60\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(data.WeekStart)
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(data.WeekLabel)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 251, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 258, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</p></div><button class=\"btn btn-outline btn-sm\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</p></div><button class=\"btn btn-circle btn-md lg:btn-sm btn-ghost\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs("/shopping?week=" + strconv.Itoa(data.WeekOffset+1))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 256, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 263, Col: 64}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" hx-target=\"#shopping-content\" hx-swap=\"innerHTML\">Next Week →</button></div><!-- Shopping Items --><div class=\"card bg-base-100 shadow-xl\"><div class=\"card-body\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-target=\"#shopping-content\" hx-swap=\"innerHTML\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-5 h-5 lg:w-4 lg:h-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M8.25 4.5l7.5 7.5-7.5 7.5\"></path></svg></button></div><!-- Shopping Items --><div class=\"card bg-base-100 shadow-xl\"><div class=\"card-body p-4 sm:p-6\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(data.ItemsByMeal) == 0 && len(data.NoMealItems) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"text-center py-12\"><p class=\"text-base-content/60\">No items in shopping list for this week.</p><p class=\"text-sm text-base-content/40\">Click \"Add Items\" to get started.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"text-center py-12\"><p class=\"text-base-content/60\">No items in shopping list for this week.</p><p class=\"text-sm text-base-content/40\">Click \"Add Items\" to get started.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"overflow-x-auto\"><table class=\"table table-zebra\"><thead><tr><th>Item</th><th>Meal</th><th>Quantity</th><th>Added By</th><th>Actions</th></tr></thead> <tbody>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"overflow-x-auto -mx-4 sm:mx-0\"><table class=\"table table-xs sm:table-sm md:table-md\"><thead><tr><th>Item</th><th class=\"!hidden sm:!table-cell\">Meal</th><th>Qty</th><th class=\"!hidden sm:!table-cell\">Added By</th><th>Actions</th></tr></thead> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -232,12 +242,12 @@ func ShoppingContent(data ShoppingPageData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</tbody></table></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</tbody></table></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div></div></div><script>\n\t\t// Edit item functionality\n\t\tdocument.addEventListener('click', (e) => {\n\t\t\tif (e.target.classList.contains('edit-item-btn')) {\n\t\t\t\tconst id = e.target.dataset.itemId;\n\t\t\t\tconst row = document.getElementById(`item-${id}`);\n\t\t\t\tconst nameSpan = row.querySelector('.editable-item-name');\n\t\t\t\tconst quantitySpan = row.querySelector('.editable-quantity');\n\n\t\t\t\tconst currentName = nameSpan.textContent;\n\t\t\t\tconst currentQuantity = quantitySpan.textContent;\n\n\t\t\t\tconst nameInput = document.createElement('input');\n\t\t\t\tnameInput.type = 'text';\n\t\t\t\tnameInput.className = 'input input-bordered input-xs';\n\t\t\t\tnameInput.value = currentName;\n\n\t\t\t\tconst quantityInput = document.createElement('input');\n\t\t\t\tquantityInput.type = 'number';\n\t\t\t\tquantityInput.className = 'input input-bordered input-xs w-20';\n\t\t\t\tquantityInput.value = currentQuantity;\n\t\t\t\tquantityInput.min = '1';\n\n\t\t\t\tnameSpan.replaceWith(nameInput);\n\t\t\t\tquantitySpan.replaceWith(quantityInput);\n\n\t\t\t\tconst saveEdit = async () => {\n\t\t\t\t\tconst formData = new FormData();\n\t\t\t\t\tformData.append('name', nameInput.value);\n\t\t\t\t\tformData.append('quantity', quantityInput.value);\n\n\t\t\t\t\tconst response = await fetch(`/shopping/items/${id}`, {\n\t\t\t\t\t\tmethod: 'POST',\n\t\t\t\t\t\tbody: formData\n\t\t\t\t\t});\n\n\t\t\t\t\tif (response.ok) {\n\t\t\t\t\t\tconst html = await response.text();\n\t\t\t\t\t\trow.outerHTML = html;\n\t\t\t\t\t}\n\t\t\t\t};\n\n\t\t\t\tnameInput.addEventListener('blur', saveEdit);\n\t\t\t\tquantityInput.addEventListener('blur', saveEdit);\n\t\t\t\tnameInput.addEventListener('keydown', (e) => {\n\t\t\t\t\tif (e.key === 'Enter') saveEdit();\n\t\t\t\t\tif (e.key === 'Escape') window.location.reload();\n\t\t\t\t});\n\t\t\t\tquantityInput.addEventListener('keydown', (e) => {\n\t\t\t\t\tif (e.key === 'Enter') saveEdit();\n\t\t\t\t\tif (e.key === 'Escape') window.location.reload();\n\t\t\t\t});\n\n\t\t\t\tnameInput.focus();\n\t\t\t}\n\t\t});\n\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></div></div><script>\n\t\t// Edit item functionality\n\t\tdocument.addEventListener('click', (e) => {\n\t\t\tif (e.target.classList.contains('edit-item-btn')) {\n\t\t\t\tconst id = e.target.dataset.itemId;\n\t\t\t\tconst row = document.getElementById(`item-${id}`);\n\t\t\t\tconst nameSpan = row.querySelector('.editable-item-name');\n\t\t\t\tconst quantitySpan = row.querySelector('.editable-quantity');\n\n\t\t\t\tconst currentName = nameSpan.textContent;\n\t\t\t\tconst currentQuantity = quantitySpan.textContent;\n\n\t\t\t\tconst nameInput = document.createElement('input');\n\t\t\t\tnameInput.type = 'text';\n\t\t\t\tnameInput.className = 'input input-bordered input-xs';\n\t\t\t\tnameInput.value = currentName;\n\n\t\t\t\tconst quantityInput = document.createElement('input');\n\t\t\t\tquantityInput.type = 'number';\n\t\t\t\tquantityInput.className = 'input input-bordered input-xs w-20';\n\t\t\t\tquantityInput.value = currentQuantity;\n\t\t\t\tquantityInput.min = '1';\n\n\t\t\t\tnameSpan.replaceWith(nameInput);\n\t\t\t\tquantitySpan.replaceWith(quantityInput);\n\n\t\t\t\tconst saveEdit = async () => {\n\t\t\t\t\tconst formData = new FormData();\n\t\t\t\t\tformData.append('name', nameInput.value);\n\t\t\t\t\tformData.append('quantity', quantityInput.value);\n\n\t\t\t\t\tconst response = await fetch(`/shopping/items/${id}`, {\n\t\t\t\t\t\tmethod: 'POST',\n\t\t\t\t\t\tbody: formData\n\t\t\t\t\t});\n\n\t\t\t\t\tif (response.ok) {\n\t\t\t\t\t\tconst html = await response.text();\n\t\t\t\t\t\trow.outerHTML = html;\n\t\t\t\t\t}\n\t\t\t\t};\n\n\t\t\t\tnameInput.addEventListener('blur', saveEdit);\n\t\t\t\tquantityInput.addEventListener('blur', saveEdit);\n\t\t\t\tnameInput.addEventListener('keydown', (e) => {\n\t\t\t\t\tif (e.key === 'Enter') saveEdit();\n\t\t\t\t\tif (e.key === 'Escape') window.location.reload();\n\t\t\t\t});\n\t\t\t\tquantityInput.addEventListener('keydown', (e) => {\n\t\t\t\t\tif (e.key === 'Enter') saveEdit();\n\t\t\t\t\tif (e.key === 'Escape') window.location.reload();\n\t\t\t\t});\n\n\t\t\t\tnameInput.focus();\n\t\t\t}\n\t\t});\n\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -266,157 +276,185 @@ func ShoppingItemRow(item sqlc.ShoppingItem, weekStart string, weekOffset int) t
 			templ_7745c5c3_Var12 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<tr id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<tr id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("item-" + strconv.FormatInt(item.ID, 10))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 361, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 370, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" data-item-id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" data-item-id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(item.ID, 10))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 361, Col: 98}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 370, Col: 98}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\"><td><span class=\"editable-item-name\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"><td class=\"font-medium\"><span class=\"editable-item-name\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(item.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 363, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 372, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span></td><td>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span><div class=\"sm:hidden text-xs text-base-content/60\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if item.Meal.Valid && item.Meal.String != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<span class=\"badge badge-primary\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(item.Meal.String)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 367, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 375, Col: 23}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " <span>• </span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<span class=\"text-base-content/40\">-</span>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</td><td><span class=\"editable-quantity\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var17 string
-		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(item.Quantity, 10))
+		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(item.AddedBy)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 373, Col: 73}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 378, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span></td><td><span class=\"badge badge-outline\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div></td><td class=\"!hidden sm:!table-cell\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var18 string
-		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(item.AddedBy)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 376, Col: 51}
+		if item.Meal.Valid && item.Meal.String != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<span class=\"badge badge-primary badge-xs sm:badge-sm\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var18 string
+			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(item.Meal.String)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 383, Col: 77}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<span class=\"text-base-content/40\">-</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</span></td><td><div class=\"flex gap-2\"><button class=\"btn btn-xs btn-ghost edit-item-btn\" data-item-id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</td><td><span class=\"editable-quantity\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var19 string
-		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(item.ID, 10))
+		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(item.Quantity, 10))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 382, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 389, Col: 73}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\">Edit</button> <button class=\"btn btn-xs btn-error\" hx-delete=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span></td><td class=\"!hidden sm:!table-cell\"><span class=\"badge badge-outline badge-xs sm:badge-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var20 string
-		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs("/shopping/items/" + strconv.FormatInt(item.ID, 10))
+		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(item.AddedBy)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 388, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 392, Col: 72}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</span></td><td><div class=\"flex flex-col sm:flex-row gap-1\"><button class=\"btn btn-sm btn-ghost edit-item-btn\" data-item-id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var21 string
-		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("#item-" + strconv.FormatInt(item.ID, 10))
+		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(item.ID, 10))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 389, Col: 58}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 398, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" hx-swap=\"outerHTML swap:300ms\" hx-confirm=\"Are you sure you want to delete this item?\">Delete</button> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\"><span class=\"hidden sm:inline\">Edit</span> <span class=\"sm:hidden\">✏️</span></button> <button class=\"btn btn-sm btn-error\" hx-delete=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var22 string
+		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs("/shopping/items/" + strconv.FormatInt(item.ID, 10))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 405, Col: 68}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" hx-target=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var23 string
+		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs("#item-" + strconv.FormatInt(item.ID, 10))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 406, Col: 58}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" hx-swap=\"outerHTML swap:300ms\" hx-confirm=\"Are you sure you want to delete this item?\"><span class=\"hidden sm:inline\">Delete</span> <span class=\"sm:hidden\">🗑️</span></button> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if item.Meal.Valid && item.Meal.String != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<form method=\"POST\" action=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<form method=\"POST\" action=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var22 templ.SafeURL
-			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/shopping/meals/" + item.Meal.String + "/delete-all?week_start=" + weekStart + "&week_offset=" + strconv.Itoa(weekOffset)))
+			var templ_7745c5c3_Var24 templ.SafeURL
+			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/shopping/meals/" + item.Meal.String + "/delete-all?week_start=" + weekStart + "&week_offset=" + strconv.Itoa(weekOffset)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 396, Col: 171}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/shopping.templ`, Line: 414, Col: 171}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" style=\"display: inline;\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" class=\"!hidden sm:!block\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -424,21 +462,21 @@ func ShoppingItemRow(item sqlc.ShoppingItem, weekStart string, weekOffset int) t
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<button type=\"submit\" class=\"btn btn-xs btn-warning\" onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<button type=\"submit\" class=\"btn btn-sm btn-warning\" onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var23 templ.ComponentScript = templ.ComponentScript{Call: "return confirm('Are you sure you want to delete ALL items for \\'" + item.Meal.String + "\\'?')"}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var23.Call)
+			var templ_7745c5c3_Var25 templ.ComponentScript = templ.ComponentScript{Call: "return confirm('Are you sure you want to delete ALL items for \\'" + item.Meal.String + "\\'?')"}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var25.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\">Delete Meal</button></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\">Delete Meal</button></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</div></td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

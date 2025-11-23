@@ -19,13 +19,13 @@ type ShoppingPageData struct {
 templ ShoppingPage(user *auth.User, data ShoppingPageData) {
 	@layout.Base("Shopping List", user) {
 		<div class="space-y-6">
-			<div class="flex justify-between items-center">
+			<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 				<h1 class="text-3xl font-bold">Shopping List</h1>
-				<button class="btn btn-primary" onclick="openAddItemModal()">
+				<button class="btn btn-primary btn-sm sm:btn-md" onclick="openAddItemModal()">
 					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
 					</svg>
-					Add Items
+					<span class="hidden sm:inline">Add Items</span>
 				</button>
 			</div>
 
@@ -36,74 +36,74 @@ templ ShoppingPage(user *auth.User, data ShoppingPageData) {
 
 		<!-- Add Item Modal -->
 		<dialog id="add_item_modal" class="modal modal-bottom sm:modal-middle">
-			<div class="modal-box max-w-2xl">
-				<h3 class="font-bold text-lg mb-4">Add Shopping Items</h3>
+			<div class="modal-box max-w-2xl p-4 sm:p-6">
+				<h3 class="font-bold text-base sm:text-lg mb-3 sm:mb-4">Add Shopping Items</h3>
 
 				<!-- Single Item Form -->
 				<form method="POST" action="/shopping/items" id="add-item-form">
 					<input type="hidden" name="week_start" id="modal-week-start" value={ data.WeekStart }/>
 					<input type="hidden" name="week_offset" id="modal-week-offset" value={ strconv.Itoa(data.WeekOffset) }/>
 
-					<h4 class="font-semibold mb-2">Add Single Item</h4>
-					<div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+					<h4 class="font-semibold text-sm sm:text-base mb-2">Add Single Item</h4>
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4">
 						<div>
-							<label class="label">
-								<span class="label-text">Item Name</span>
+							<label class="label py-1">
+								<span class="label-text text-xs sm:text-sm">Item Name</span>
 							</label>
 							<input
 								type="text"
 								name="name"
 								id="modal-item-name"
-								class="input input-bordered w-full"
+								class="input input-bordered input-sm sm:input-md w-full"
 								placeholder="e.g., Tomatoes"
 								required
 							/>
 						</div>
 
 						<div>
-							<label class="label">
-								<span class="label-text">Meal (Optional)</span>
+							<label class="label py-1">
+								<span class="label-text text-xs sm:text-sm">Meal (Optional)</span>
 							</label>
 							<input
 								type="text"
 								name="meal"
 								id="modal-item-meal"
-								class="input input-bordered w-full"
+								class="input input-bordered input-sm sm:input-md w-full"
 								placeholder="e.g., Monday Dinner"
 							/>
 						</div>
 
 						<div>
-							<label class="label">
-								<span class="label-text">Quantity</span>
+							<label class="label py-1">
+								<span class="label-text text-xs sm:text-sm">Quantity</span>
 							</label>
 							<input
 								type="number"
 								name="quantity"
-								class="input input-bordered w-full"
+								class="input input-bordered input-sm sm:input-md w-full"
 								value="1"
 								min="1"
 							/>
 						</div>
 					</div>
 
-					<div class="divider">OR</div>
+					<div class="divider text-xs sm:text-sm my-3 sm:my-4">OR</div>
 
 					<!-- Quick Add Meal -->
-					<h4 class="font-semibold mb-2">Quick Add Meal</h4>
-					<div class="flex gap-2 mb-4">
+					<h4 class="font-semibold text-sm sm:text-base mb-2">Quick Add Meal</h4>
+					<div class="flex flex-col sm:flex-row gap-2 mb-3 sm:mb-4">
 						<select
 							id="modal-quick-add-meal"
-							class="select select-bordered flex-1"
+							class="select select-bordered select-sm sm:select-md flex-1"
 						>
 							<option value="" disabled selected>Select a meal to add all items...</option>
 						</select>
-						<button type="button" class="btn btn-secondary" onclick="quickAddMealFromModal()">Quick Add</button>
+						<button type="button" class="btn btn-secondary btn-sm sm:btn-md" onclick="quickAddMealFromModal()">Quick Add</button>
 					</div>
 
-					<div class="modal-action">
-						<button type="button" class="btn" onclick="document.getElementById('add_item_modal').close()">Cancel</button>
-						<button type="submit" class="btn btn-primary">Add Item</button>
+					<div class="modal-action flex-col sm:flex-row gap-2">
+						<button type="button" class="btn btn-sm sm:btn-md order-2 sm:order-1" onclick="document.getElementById('add_item_modal').close()">Cancel</button>
+						<button type="submit" class="btn btn-primary btn-sm sm:btn-md order-1 sm:order-2">Add Item</button>
 					</div>
 				</form>
 			</div>
@@ -236,48 +236,57 @@ templ ShoppingContent(data ShoppingPageData) {
 		<input type="hidden" name="week_offset" value={ strconv.Itoa(data.WeekOffset) }/>
 
 		<!-- Week Navigation -->
-		<div class="flex justify-between items-center">
+		<div class="flex justify-center items-center gap-2 sm:gap-4">
 			<button
-				class="btn btn-outline btn-sm"
+				class="btn btn-circle btn-md lg:btn-sm btn-ghost"
 				hx-get={ "/shopping?week=" + strconv.Itoa(data.WeekOffset-1) }
 				hx-target="#shopping-content"
 				hx-swap="innerHTML"
 			>
-				← Previous Week
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 lg:w-4 lg:h-4">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+				</svg>
 			</button>
 
 			<div class="text-center">
-				<h2 class="text-xl font-semibold">{ data.WeekLabel }</h2>
-				<p class="text-sm text-base-content/60">Week of { data.WeekStart }</p>
+				<h2 class="text-lg sm:text-xl font-semibold flex items-center gap-2 justify-center">
+					<span>Week of { data.WeekStart }</span>
+					if data.IsCurrentWeek {
+						<div class="badge badge-primary badge-xs sm:badge-sm">Current</div>
+					}
+				</h2>
+				<p class="text-xs sm:text-sm text-base-content/60">{ data.WeekLabel }</p>
 			</div>
 
 			<button
-				class="btn btn-outline btn-sm"
+				class="btn btn-circle btn-md lg:btn-sm btn-ghost"
 				hx-get={ "/shopping?week=" + strconv.Itoa(data.WeekOffset+1) }
 				hx-target="#shopping-content"
 				hx-swap="innerHTML"
 			>
-				Next Week →
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 lg:w-4 lg:h-4">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+				</svg>
 			</button>
 		</div>
 
 		<!-- Shopping Items -->
 		<div class="card bg-base-100 shadow-xl">
-			<div class="card-body">
+			<div class="card-body p-4 sm:p-6">
 				if len(data.ItemsByMeal) == 0 && len(data.NoMealItems) == 0 {
 					<div class="text-center py-12">
 						<p class="text-base-content/60">No items in shopping list for this week.</p>
 						<p class="text-sm text-base-content/40">Click "Add Items" to get started.</p>
 					</div>
 				} else {
-					<div class="overflow-x-auto">
-						<table class="table table-zebra">
+					<div class="overflow-x-auto -mx-4 sm:mx-0">
+						<table class="table table-xs sm:table-sm md:table-md">
 							<thead>
 								<tr>
 									<th>Item</th>
-									<th>Meal</th>
-									<th>Quantity</th>
-									<th>Added By</th>
+									<th class="!hidden sm:!table-cell">Meal</th>
+									<th>Qty</th>
+									<th class="!hidden sm:!table-cell">Added By</th>
 									<th>Actions</th>
 								</tr>
 							</thead>
@@ -359,12 +368,19 @@ templ ShoppingContent(data ShoppingPageData) {
 
 templ ShoppingItemRow(item sqlc.ShoppingItem, weekStart string, weekOffset int) {
 	<tr id={ "item-" + strconv.FormatInt(item.ID, 10) } data-item-id={ strconv.FormatInt(item.ID, 10) }>
-		<td>
+		<td class="font-medium">
 			<span class="editable-item-name">{ item.Name }</span>
+			<div class="sm:hidden text-xs text-base-content/60">
+				if item.Meal.Valid && item.Meal.String != "" {
+					{ item.Meal.String }
+					<span> • </span>
+				}
+				{ item.AddedBy }
+			</div>
 		</td>
-		<td>
+		<td class="!hidden sm:!table-cell">
 			if item.Meal.Valid && item.Meal.String != "" {
-				<span class="badge badge-primary">{ item.Meal.String }</span>
+				<span class="badge badge-primary badge-xs sm:badge-sm">{ item.Meal.String }</span>
 			} else {
 				<span class="text-base-content/40">-</span>
 			}
@@ -372,31 +388,33 @@ templ ShoppingItemRow(item sqlc.ShoppingItem, weekStart string, weekOffset int) 
 		<td>
 			<span class="editable-quantity">{ strconv.FormatInt(item.Quantity, 10) }</span>
 		</td>
-		<td>
-			<span class="badge badge-outline">{ item.AddedBy }</span>
+		<td class="!hidden sm:!table-cell">
+			<span class="badge badge-outline badge-xs sm:badge-sm">{ item.AddedBy }</span>
 		</td>
 		<td>
-			<div class="flex gap-2">
+			<div class="flex flex-col sm:flex-row gap-1">
 				<button
-					class="btn btn-xs btn-ghost edit-item-btn"
+					class="btn btn-sm btn-ghost edit-item-btn"
 					data-item-id={ strconv.FormatInt(item.ID, 10) }
 				>
-					Edit
+					<span class="hidden sm:inline">Edit</span>
+					<span class="sm:hidden">✏️</span>
 				</button>
 				<button
-					class="btn btn-xs btn-error"
+					class="btn btn-sm btn-error"
 					hx-delete={ "/shopping/items/" + strconv.FormatInt(item.ID, 10) }
 					hx-target={ "#item-" + strconv.FormatInt(item.ID, 10) }
 					hx-swap="outerHTML swap:300ms"
 					hx-confirm="Are you sure you want to delete this item?"
 				>
-					Delete
+					<span class="hidden sm:inline">Delete</span>
+					<span class="sm:hidden">🗑️</span>
 				</button>
 				if item.Meal.Valid && item.Meal.String != "" {
-					<form method="POST" action={ templ.SafeURL("/shopping/meals/" + item.Meal.String + "/delete-all?week_start=" + weekStart + "&week_offset=" + strconv.Itoa(weekOffset)) } style="display: inline;">
+					<form method="POST" action={ templ.SafeURL("/shopping/meals/" + item.Meal.String + "/delete-all?week_start=" + weekStart + "&week_offset=" + strconv.Itoa(weekOffset)) } class="!hidden sm:!block">
 						<button
 							type="submit"
-							class="btn btn-xs btn-warning"
+							class="btn btn-sm btn-warning"
 							onclick={ templ.ComponentScript{Call: "return confirm('Are you sure you want to delete ALL items for \\'" + item.Meal.String + "\\'?')"} }
 						>
 							Delete Meal
