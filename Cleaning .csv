@@ -13,7 +13,6 @@ Clean Pantry,Kitchen,26 Weekly,Both,180
 Josie Laundry,Laundry,Weekly,Josie,30
 Dru Laundry,Laundry,Weekly,Dru,30
 House Laundry,Laundry,Weekly,Alternate,30
-Change Towels,Laundry,Weekly,Alternate,15
 Change Bed Linen,Laundry,Fortnightly,Alternate,20
 Do Couch Cushions,Lounge,Weekly,Alternate,10
 Mop Lounge,Lounge,Monthly,Alternate,30
@@ -27,4 +26,4 @@ General Tidy Under House,Under House,8 Weekly,Alternate,30
 Clean Big Shelf,Lounge Room,26 Weekly,Josie,180
 Deep Clean Lounge,Lounge Room,12 Weekly,Alternate,60
 Rug Vacuum,House,Fortnightly,Alternate,30
-,,,,1320
+Kitty Litter, Bathroom, Weekly, Alternate, 20

@@ -65,8 +65,18 @@ ORDER BY ti.scheduled_date
 LIMIT 1;
 
 -- name: CheckDuplicateInstance :one
-SELECT COUNT(*) FROM task_instances
-WHERE task_id = ? AND scheduled_date = ? AND brought_forward = FALSE;
+SELECT COUNT(*) FROM task_instances ti
+JOIN tasks t ON ti.task_id = t.id
+WHERE ti.task_id = ?
+  AND ti.week_start_date = ?
+  AND ti.brought_forward = FALSE
+  AND (
+    -- For 'Both' tasks, check assigned_to matches
+    (LOWER(t.default_assignee) = 'both' AND ti.assigned_to = ?)
+    OR
+    -- For other tasks, just check task and week (ignore assigned_to)
+    (LOWER(t.default_assignee) != 'both' OR t.default_assignee IS NULL)
+  );
 
 -- name: ListTaskInstances :many
 SELECT * FROM task_instances

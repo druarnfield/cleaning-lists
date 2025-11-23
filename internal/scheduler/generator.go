@@ -96,10 +96,14 @@ func generateInstancesForPerson(
 	// Generate recurring instances
 	nextDate := firstOccurrence
 	for nextDate.Before(endDate) || nextDate.Equal(endDate) {
+		weekStart := GetWeekStart(nextDate)
+
 		// Check if instance already exists (to avoid duplicates)
+		// Uses week_start_date to prevent multiple instances in same week
 		count, err := db.CheckDuplicateInstance(ctx, sqlc.CheckDuplicateInstanceParams{
 			TaskID:        task.ID,
-			ScheduledDate: nextDate,
+			WeekStartDate: weekStart,
+			AssignedTo:    assignee,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to check duplicate instance: %w", err)
@@ -107,7 +111,6 @@ func generateInstancesForPerson(
 
 		if count == 0 {
 			// Create instance
-			weekStart := GetWeekStart(nextDate)
 			_, err = db.CreateInstance(ctx, sqlc.CreateInstanceParams{
 				TaskID:               task.ID,
 				ScheduledDate:        nextDate,
@@ -138,6 +141,70 @@ func RegenerateAllInstances(ctx context.Context, db *sqlc.Queries) error {
 
 	startDate := time.Now().Truncate(24 * time.Hour)
 	return GenerateInstances(ctx, db, startDate, 4)
+}
+
+// GenerateInstancesForNewTask generates instances for a newly created task
+// If it's Friday, Saturday, or Sunday, start from next week
+// Otherwise, start from current week
+func GenerateInstancesForNewTask(ctx context.Context, db *sqlc.Queries, taskID int64) error {
+	// Get the task
+	task, err := db.GetTask(ctx, taskID)
+	if err != nil {
+		return fmt.Errorf("failed to get task: %w", err)
+	}
+
+	// Parse frequency
+	frequencyDays, err := ParseFrequency(task.Frequency)
+	if err != nil {
+		return fmt.Errorf("failed to parse frequency: %w", err)
+	}
+
+	// Determine start date based on current day of week
+	now := time.Now()
+	weekday := now.Weekday()
+
+	var startDate time.Time
+	// If it's Friday (5), Saturday (6), or Sunday (0), start from next week
+	if weekday == time.Friday || weekday == time.Saturday || weekday == time.Sunday {
+		// Start from next Monday
+		nextMonday := GetWeekStart(now).AddDate(0, 0, 7)
+		startDate = nextMonday
+	} else {
+		// Start from current Monday
+		startDate = GetWeekStart(now)
+	}
+
+	endDate := startDate.AddDate(0, 0, 4*7) // 4 weeks ahead
+
+	// Get task assignment
+	assignments, err := DistributeTasks(ctx, db)
+	if err != nil {
+		return fmt.Errorf("failed to distribute tasks: %w", err)
+	}
+
+	assignee := assignments[task.ID]
+
+	// Handle "both" tasks by generating instances for both people
+	if assignee == "both" {
+		// Generate for Dru
+		err = generateInstancesForPerson(ctx, db, task, "dru", startDate, endDate, frequencyDays)
+		if err != nil {
+			return err
+		}
+		// Generate for Josie
+		err = generateInstancesForPerson(ctx, db, task, "josie", startDate, endDate, frequencyDays)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Generate for single assignee
+		err = generateInstancesForPerson(ctx, db, task, assignee, startDate, endDate, frequencyDays)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // BringForwardTask creates a brought-forward instance of a task

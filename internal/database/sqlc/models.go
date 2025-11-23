@@ -17,6 +17,13 @@ type Completion struct {
 	ActualMins     sql.NullInt64 `json:"actual_mins"`
 }
 
+type Meal struct {
+	ID        int64        `json:"id"`
+	Name      string       `json:"name"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+}
+
 type Session struct {
 	Token     string       `json:"token"`
 	Username  string       `json:"username"`
@@ -28,6 +35,25 @@ type Setting struct {
 	Key       string       `json:"key"`
 	Value     string       `json:"value"`
 	UpdatedAt sql.NullTime `json:"updated_at"`
+}
+
+type ShoppingItem struct {
+	ID            int64          `json:"id"`
+	Name          string         `json:"name"`
+	Meal          sql.NullString `json:"meal"`
+	Quantity      int64          `json:"quantity"`
+	WeekStartDate time.Time      `json:"week_start_date"`
+	AddedBy       string         `json:"added_by"`
+	CreatedAt     sql.NullTime   `json:"created_at"`
+	UpdatedAt     sql.NullTime   `json:"updated_at"`
+}
+
+type ShoppingItemHistory struct {
+	ID       int64          `json:"id"`
+	Name     string         `json:"name"`
+	Meal     sql.NullString `json:"meal"`
+	LastUsed sql.NullTime   `json:"last_used"`
+	UseCount sql.NullInt64  `json:"use_count"`
 }
 
 type Task struct {

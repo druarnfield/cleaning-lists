@@ -13,17 +13,24 @@ import (
 type Querier interface {
 	CheckDuplicateInstance(ctx context.Context, arg CheckDuplicateInstanceParams) (int64, error)
 	CountInstances(ctx context.Context) (int64, error)
+	CountMealUsage(ctx context.Context, lower string) (int64, error)
 	CountTasks(ctx context.Context) (int64, error)
 	CreateCompletion(ctx context.Context, arg CreateCompletionParams) (Completion, error)
 	CreateInstance(ctx context.Context, arg CreateInstanceParams) (TaskInstance, error)
+	CreateMeal(ctx context.Context, name string) (Meal, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	CreateSetting(ctx context.Context, arg CreateSettingParams) error
+	CreateShoppingItem(ctx context.Context, arg CreateShoppingItemParams) (ShoppingItem, error)
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	DeleteCompletion(ctx context.Context, taskInstanceID int64) error
 	DeleteExpiredSessions(ctx context.Context) error
+	DeleteMeal(ctx context.Context, id int64) error
 	DeleteOldCompletions(ctx context.Context, dollar_1 sql.NullString) error
 	DeleteOldInstances(ctx context.Context) error
+	DeleteOldShoppingItems(ctx context.Context) error
 	DeleteSession(ctx context.Context, token string) error
+	DeleteShoppingItem(ctx context.Context, id int64) error
+	DeleteShoppingItemsByMealAndWeek(ctx context.Context, arg DeleteShoppingItemsByMealAndWeekParams) error
 	DeleteTask(ctx context.Context, id int64) error
 	DeleteUserSessions(ctx context.Context, username string) error
 	GetCategories(ctx context.Context) ([]string, error)
@@ -31,11 +38,16 @@ type Querier interface {
 	GetCompletion(ctx context.Context, taskInstanceID int64) (Completion, error)
 	GetCompletionByInstance(ctx context.Context, taskInstanceID int64) (Completion, error)
 	GetCompletionStats(ctx context.Context, arg GetCompletionStatsParams) ([]GetCompletionStatsRow, error)
+	GetDistinctMeals(ctx context.Context) ([]sql.NullString, error)
 	GetInstance(ctx context.Context, id int64) (GetInstanceRow, error)
 	GetInstanceWithTask(ctx context.Context, id int64) (GetInstanceWithTaskRow, error)
+	GetItemsByMeal(ctx context.Context, lower string) ([]GetItemsByMealRow, error)
+	GetMeal(ctx context.Context, id int64) (Meal, error)
+	GetMealByName(ctx context.Context, lower string) (Meal, error)
 	GetNextInstanceForTask(ctx context.Context, arg GetNextInstanceForTaskParams) (GetNextInstanceForTaskRow, error)
 	GetSession(ctx context.Context, token string) (Session, error)
 	GetSetting(ctx context.Context, key string) (string, error)
+	GetShoppingItem(ctx context.Context, id int64) (ShoppingItem, error)
 	GetTask(ctx context.Context, id int64) (Task, error)
 	GetTasksWithNextScheduled(ctx context.Context) ([]GetTasksWithNextScheduledRow, error)
 	GetUser(ctx context.Context, username string) (User, error)
@@ -43,15 +55,22 @@ type Querier interface {
 	ListFutureInstances(ctx context.Context, arg ListFutureInstancesParams) ([]ListFutureInstancesRow, error)
 	ListInstancesByDateRange(ctx context.Context, arg ListInstancesByDateRangeParams) ([]ListInstancesByDateRangeRow, error)
 	ListInstancesByWeek(ctx context.Context, weekStartDate time.Time) ([]ListInstancesByWeekRow, error)
+	ListMeals(ctx context.Context) ([]Meal, error)
+	ListShoppingItemsByWeek(ctx context.Context, weekStartDate time.Time) ([]ShoppingItem, error)
 	ListTaskInstances(ctx context.Context) ([]TaskInstance, error)
 	ListTasks(ctx context.Context) ([]Task, error)
 	ListTasksByCategory(ctx context.Context, category string) ([]Task, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	ResetUserPassword(ctx context.Context, arg ResetUserPasswordParams) error
+	SearchItemsAutocomplete(ctx context.Context, lower string) ([]SearchItemsAutocompleteRow, error)
+	SearchMealsAutocomplete(ctx context.Context, lower string) ([]SearchMealsAutocompleteRow, error)
+	UpdateMeal(ctx context.Context, arg UpdateMealParams) (Meal, error)
 	UpdateSetting(ctx context.Context, arg UpdateSettingParams) error
+	UpdateShoppingItem(ctx context.Context, arg UpdateShoppingItemParams) (ShoppingItem, error)
 	UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, error)
 	UpdateTaskInstanceAssignment(ctx context.Context, arg UpdateTaskInstanceAssignmentParams) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
+	UpsertItemHistory(ctx context.Context, arg UpsertItemHistoryParams) error
 }
 
 var _ Querier = (*Queries)(nil)

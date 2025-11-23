@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
 	"github.com/druarnfield/cleaning-scheduler/internal/auth"
 	"github.com/druarnfield/cleaning-scheduler/internal/database/sqlc"
+	"github.com/druarnfield/cleaning-scheduler/internal/scheduler"
 	templPages "github.com/druarnfield/cleaning-scheduler/internal/templates/pages"
 	"github.com/go-chi/chi/v5"
 )
@@ -74,7 +76,7 @@ func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		defaultAssignee = sql.NullString{String: assignedTo, Valid: true}
 	}
 
-	_, err := h.db.CreateTask(r.Context(), sqlc.CreateTaskParams{
+	task, err := h.db.CreateTask(r.Context(), sqlc.CreateTaskParams{
 		Name:            name,
 		Category:        category,
 		Frequency:       frequency,
@@ -85,6 +87,15 @@ func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Failed to create task", http.StatusInternalServerError)
 		return
+	}
+
+	// Generate instances for the new task
+	// If it's Friday/Saturday/Sunday, start from next week
+	// Otherwise, start from current week
+	err = scheduler.GenerateInstancesForNewTask(r.Context(), h.db, task.ID)
+	if err != nil {
+		log.Printf("Warning: Failed to generate instances for new task %d: %v", task.ID, err)
+		// Don't fail the request - task is created, instances can be generated later
 	}
 
 	http.Redirect(w, r, "/tasks", http.StatusSeeOther)

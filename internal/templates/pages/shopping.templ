@@ -1,0 +1,409 @@
+package pages
+
+import (
+	"github.com/druarnfield/cleaning-scheduler/internal/auth"
+	"github.com/druarnfield/cleaning-scheduler/internal/database/sqlc"
+	"github.com/druarnfield/cleaning-scheduler/internal/templates/layout"
+	"strconv"
+)
+
+type ShoppingPageData struct {
+	WeekStart     string
+	WeekLabel     string
+	WeekOffset    int
+	ItemsByMeal   map[string][]sqlc.ShoppingItem
+	NoMealItems   []sqlc.ShoppingItem
+	IsCurrentWeek bool
+}
+
+templ ShoppingPage(user *auth.User, data ShoppingPageData) {
+	@layout.Base("Shopping List", user) {
+		<div class="space-y-6">
+			<div class="flex justify-between items-center">
+				<h1 class="text-3xl font-bold">Shopping List</h1>
+				<button class="btn btn-primary" onclick="openAddItemModal()">
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+					</svg>
+					Add Items
+				</button>
+			</div>
+
+			<div id="shopping-content">
+				@ShoppingContent(data)
+			</div>
+		</div>
+
+		<!-- Add Item Modal -->
+		<dialog id="add_item_modal" class="modal modal-bottom sm:modal-middle">
+			<div class="modal-box max-w-2xl">
+				<h3 class="font-bold text-lg mb-4">Add Shopping Items</h3>
+
+				<!-- Single Item Form -->
+				<form method="POST" action="/shopping/items" id="add-item-form">
+					<input type="hidden" name="week_start" id="modal-week-start" value={ data.WeekStart }/>
+					<input type="hidden" name="week_offset" id="modal-week-offset" value={ strconv.Itoa(data.WeekOffset) }/>
+
+					<h4 class="font-semibold mb-2">Add Single Item</h4>
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+						<div>
+							<label class="label">
+								<span class="label-text">Item Name</span>
+							</label>
+							<input
+								type="text"
+								name="name"
+								id="modal-item-name"
+								class="input input-bordered w-full"
+								placeholder="e.g., Tomatoes"
+								required
+							/>
+						</div>
+
+						<div>
+							<label class="label">
+								<span class="label-text">Meal (Optional)</span>
+							</label>
+							<input
+								type="text"
+								name="meal"
+								id="modal-item-meal"
+								class="input input-bordered w-full"
+								placeholder="e.g., Monday Dinner"
+							/>
+						</div>
+
+						<div>
+							<label class="label">
+								<span class="label-text">Quantity</span>
+							</label>
+							<input
+								type="number"
+								name="quantity"
+								class="input input-bordered w-full"
+								value="1"
+								min="1"
+							/>
+						</div>
+					</div>
+
+					<div class="divider">OR</div>
+
+					<!-- Quick Add Meal -->
+					<h4 class="font-semibold mb-2">Quick Add Meal</h4>
+					<div class="flex gap-2 mb-4">
+						<select
+							id="modal-quick-add-meal"
+							class="select select-bordered flex-1"
+						>
+							<option value="" disabled selected>Select a meal to add all items...</option>
+						</select>
+						<button type="button" class="btn btn-secondary" onclick="quickAddMealFromModal()">Quick Add</button>
+					</div>
+
+					<div class="modal-action">
+						<button type="button" class="btn" onclick="document.getElementById('add_item_modal').close()">Cancel</button>
+						<button type="submit" class="btn btn-primary">Add Item</button>
+					</div>
+				</form>
+			</div>
+			<form method="dialog" class="modal-backdrop">
+				<button>close</button>
+			</form>
+		</dialog>
+
+		<script>
+			// Update modal week values when shopping content changes
+			function updateModalWeekValues() {
+				const contentDiv = document.getElementById('shopping-content');
+				if (!contentDiv) return;
+
+				// Try to find week start and offset from the shopping content
+				const weekStartInput = contentDiv.querySelector('input[name="week_start"]');
+				const weekOffsetInput = contentDiv.querySelector('input[name="week_offset"]');
+
+				if (weekStartInput && weekOffsetInput) {
+					document.getElementById('modal-week-start').value = weekStartInput.value;
+					document.getElementById('modal-week-offset').value = weekOffsetInput.value;
+				}
+			}
+
+			// Load meals into dropdown
+			async function loadMealsDropdown() {
+				const response = await fetch('/shopping/autocomplete/meals?q=');
+				const meals = await response.json();
+
+				const select = document.getElementById('modal-quick-add-meal');
+				// Reset to default option
+				select.innerHTML = '<option value="" disabled selected>Select a meal to add all items...</option>';
+
+				meals.forEach(m => {
+					const option = document.createElement('option');
+					option.value = m.meal;
+					option.textContent = m.meal;
+					select.appendChild(option);
+				});
+			}
+
+			// Update modal values and load meals when modal opens
+			function openAddItemModal() {
+				updateModalWeekValues();
+				loadMealsDropdown();
+				document.getElementById('add_item_modal').showModal();
+			}
+
+			// Load meals when page loads
+			document.addEventListener('DOMContentLoaded', loadMealsDropdown);
+
+			// Update modal values after HTMX swaps
+			document.body.addEventListener('htmx:afterSwap', function(evt) {
+				if (evt.detail.target.id === 'shopping-content') {
+					updateModalWeekValues();
+				}
+			});
+
+			function quickAddMealFromModal() {
+				const select = document.getElementById('modal-quick-add-meal');
+				const meal = select.value;
+				if (!meal) {
+					alert('Please select a meal');
+					return;
+				}
+
+				const weekStart = document.getElementById('modal-week-start').value;
+				const weekOffset = document.getElementById('modal-week-offset').value;
+
+				window.location.href = `/shopping/meals/${encodeURIComponent(meal)}/quick-add?week_start=${weekStart}&week_offset=${weekOffset}`;
+			}
+
+			// Item name autocomplete in modal
+			let itemTimeout;
+			document.getElementById('modal-item-name').addEventListener('input', async (e) => {
+				clearTimeout(itemTimeout);
+				const query = e.target.value;
+				if (query.length < 2) return;
+
+				itemTimeout = setTimeout(async () => {
+					const response = await fetch(`/shopping/autocomplete/items?q=${encodeURIComponent(query)}`);
+					const items = await response.json();
+
+					// Remove existing datalist if any
+					let datalist = document.getElementById('modal-item-suggestions');
+					if (!datalist) {
+						datalist = document.createElement('datalist');
+						datalist.id = 'modal-item-suggestions';
+						document.body.appendChild(datalist);
+						document.getElementById('modal-item-name').setAttribute('list', 'modal-item-suggestions');
+					}
+
+					datalist.innerHTML = items.map(item =>
+						`<option value="${item.name}">${item.meal ? ` (${item.meal})` : ''}</option>`
+					).join('');
+				}, 300);
+			});
+
+			// Meal autocomplete in modal
+			let mealTimeout;
+			document.getElementById('modal-item-meal').addEventListener('input', async (e) => {
+				clearTimeout(mealTimeout);
+				const query = e.target.value;
+				if (query.length < 2) return;
+
+				mealTimeout = setTimeout(async () => {
+					const response = await fetch(`/shopping/autocomplete/meals?q=${encodeURIComponent(query)}`);
+					const meals = await response.json();
+
+					// Remove existing datalist if any
+					let datalist = document.getElementById('modal-meal-suggestions');
+					if (!datalist) {
+						datalist = document.createElement('datalist');
+						datalist.id = 'modal-meal-suggestions';
+						document.body.appendChild(datalist);
+						document.getElementById('modal-item-meal').setAttribute('list', 'modal-meal-suggestions');
+					}
+
+					datalist.innerHTML = meals.map(m => `<option value="${m.meal}"></option>`).join('');
+				}, 300);
+			});
+		</script>
+	}
+}
+
+templ ShoppingContent(data ShoppingPageData) {
+	<div class="space-y-6">
+		<!-- Hidden inputs for week tracking (used by modal) -->
+		<input type="hidden" name="week_start" value={ data.WeekStart }/>
+		<input type="hidden" name="week_offset" value={ strconv.Itoa(data.WeekOffset) }/>
+
+		<!-- Week Navigation -->
+		<div class="flex justify-between items-center">
+			<button
+				class="btn btn-outline btn-sm"
+				hx-get={ "/shopping?week=" + strconv.Itoa(data.WeekOffset-1) }
+				hx-target="#shopping-content"
+				hx-swap="innerHTML"
+			>
+				← Previous Week
+			</button>
+
+			<div class="text-center">
+				<h2 class="text-xl font-semibold">{ data.WeekLabel }</h2>
+				<p class="text-sm text-base-content/60">Week of { data.WeekStart }</p>
+			</div>
+
+			<button
+				class="btn btn-outline btn-sm"
+				hx-get={ "/shopping?week=" + strconv.Itoa(data.WeekOffset+1) }
+				hx-target="#shopping-content"
+				hx-swap="innerHTML"
+			>
+				Next Week →
+			</button>
+		</div>
+
+		<!-- Shopping Items -->
+		<div class="card bg-base-100 shadow-xl">
+			<div class="card-body">
+				if len(data.ItemsByMeal) == 0 && len(data.NoMealItems) == 0 {
+					<div class="text-center py-12">
+						<p class="text-base-content/60">No items in shopping list for this week.</p>
+						<p class="text-sm text-base-content/40">Click "Add Items" to get started.</p>
+					</div>
+				} else {
+					<div class="overflow-x-auto">
+						<table class="table table-zebra">
+							<thead>
+								<tr>
+									<th>Item</th>
+									<th>Meal</th>
+									<th>Quantity</th>
+									<th>Added By</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								for _, items := range data.ItemsByMeal {
+									for _, item := range items {
+										@ShoppingItemRow(item, data.WeekStart, data.WeekOffset)
+									}
+								}
+								for _, item := range data.NoMealItems {
+									@ShoppingItemRow(item, data.WeekStart, data.WeekOffset)
+								}
+							</tbody>
+						</table>
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// Edit item functionality
+		document.addEventListener('click', (e) => {
+			if (e.target.classList.contains('edit-item-btn')) {
+				const id = e.target.dataset.itemId;
+				const row = document.getElementById(`item-${id}`);
+				const nameSpan = row.querySelector('.editable-item-name');
+				const quantitySpan = row.querySelector('.editable-quantity');
+
+				const currentName = nameSpan.textContent;
+				const currentQuantity = quantitySpan.textContent;
+
+				const nameInput = document.createElement('input');
+				nameInput.type = 'text';
+				nameInput.className = 'input input-bordered input-xs';
+				nameInput.value = currentName;
+
+				const quantityInput = document.createElement('input');
+				quantityInput.type = 'number';
+				quantityInput.className = 'input input-bordered input-xs w-20';
+				quantityInput.value = currentQuantity;
+				quantityInput.min = '1';
+
+				nameSpan.replaceWith(nameInput);
+				quantitySpan.replaceWith(quantityInput);
+
+				const saveEdit = async () => {
+					const formData = new FormData();
+					formData.append('name', nameInput.value);
+					formData.append('quantity', quantityInput.value);
+
+					const response = await fetch(`/shopping/items/${id}`, {
+						method: 'POST',
+						body: formData
+					});
+
+					if (response.ok) {
+						const html = await response.text();
+						row.outerHTML = html;
+					}
+				};
+
+				nameInput.addEventListener('blur', saveEdit);
+				quantityInput.addEventListener('blur', saveEdit);
+				nameInput.addEventListener('keydown', (e) => {
+					if (e.key === 'Enter') saveEdit();
+					if (e.key === 'Escape') window.location.reload();
+				});
+				quantityInput.addEventListener('keydown', (e) => {
+					if (e.key === 'Enter') saveEdit();
+					if (e.key === 'Escape') window.location.reload();
+				});
+
+				nameInput.focus();
+			}
+		});
+	</script>
+}
+
+templ ShoppingItemRow(item sqlc.ShoppingItem, weekStart string, weekOffset int) {
+	<tr id={ "item-" + strconv.FormatInt(item.ID, 10) } data-item-id={ strconv.FormatInt(item.ID, 10) }>
+		<td>
+			<span class="editable-item-name">{ item.Name }</span>
+		</td>
+		<td>
+			if item.Meal.Valid && item.Meal.String != "" {
+				<span class="badge badge-primary">{ item.Meal.String }</span>
+			} else {
+				<span class="text-base-content/40">-</span>
+			}
+		</td>
+		<td>
+			<span class="editable-quantity">{ strconv.FormatInt(item.Quantity, 10) }</span>
+		</td>
+		<td>
+			<span class="badge badge-outline">{ item.AddedBy }</span>
+		</td>
+		<td>
+			<div class="flex gap-2">
+				<button
+					class="btn btn-xs btn-ghost edit-item-btn"
+					data-item-id={ strconv.FormatInt(item.ID, 10) }
+				>
+					Edit
+				</button>
+				<button
+					class="btn btn-xs btn-error"
+					hx-delete={ "/shopping/items/" + strconv.FormatInt(item.ID, 10) }
+					hx-target={ "#item-" + strconv.FormatInt(item.ID, 10) }
+					hx-swap="outerHTML swap:300ms"
+					hx-confirm="Are you sure you want to delete this item?"
+				>
+					Delete
+				</button>
+				if item.Meal.Valid && item.Meal.String != "" {
+					<form method="POST" action={ templ.SafeURL("/shopping/meals/" + item.Meal.String + "/delete-all?week_start=" + weekStart + "&week_offset=" + strconv.Itoa(weekOffset)) } style="display: inline;">
+						<button
+							type="submit"
+							class="btn btn-xs btn-warning"
+							onclick={ templ.ComponentScript{Call: "return confirm('Are you sure you want to delete ALL items for \\'" + item.Meal.String + "\\'?')"} }
+						>
+							Delete Meal
+						</button>
+					</form>
+				}
+			</div>
+		</td>
+	</tr>
+}

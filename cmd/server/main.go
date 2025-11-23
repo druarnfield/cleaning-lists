@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +19,94 @@ import (
 	"github.com/druarnfield/cleaning-scheduler/internal/handlers"
 	"github.com/druarnfield/cleaning-scheduler/internal/scheduler"
 )
+
+// runMigrations executes database migrations in a production-safe manner
+func runMigrations(db *sql.DB) error {
+	// Create migrations tracking table if it doesn't exist
+	_, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS schema_migrations (
+			version INTEGER PRIMARY KEY,
+			applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Check if migration 1 needs to be auto-detected (for existing databases)
+	// If the users table exists but migration 1 isn't tracked, mark it as applied
+	var usersTableExists int
+	err = db.QueryRow("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='users'").Scan(&usersTableExists)
+	if err != nil {
+		return fmt.Errorf("failed to check for existing tables: %w", err)
+	}
+
+	if usersTableExists > 0 {
+		// Check if migration 1 is tracked
+		var migration1Tracked int
+		err = db.QueryRow("SELECT COUNT(*) FROM schema_migrations WHERE version = 1").Scan(&migration1Tracked)
+		if err != nil {
+			return fmt.Errorf("failed to check migration tracking: %w", err)
+		}
+
+		if migration1Tracked == 0 {
+			// Database has existing schema but no tracking - mark migration 1 as applied
+			log.Printf("Detected existing schema from migration 1, marking as applied")
+			_, err = db.Exec("INSERT INTO schema_migrations (version) VALUES (1)")
+			if err != nil {
+				return fmt.Errorf("failed to record existing migration 1: %w", err)
+			}
+		}
+	}
+
+	// Define available migrations
+	migrations := []struct {
+		version int
+		file    string
+	}{
+		{1, "internal/database/migrations/001_initial_schema.sql"},
+		{2, "internal/database/migrations/002_shopping_list.sql"},
+		{3, "internal/database/migrations/003_meals_table.sql"},
+	}
+
+	// Check and run each migration
+	for _, migration := range migrations {
+		// Check if migration has already been applied
+		var count int
+		err := db.QueryRow("SELECT COUNT(*) FROM schema_migrations WHERE version = ?", migration.version).Scan(&count)
+		if err != nil {
+			return err
+		}
+
+		if count > 0 {
+			log.Printf("Migration %d already applied, skipping", migration.version)
+			continue
+		}
+
+		// Read migration file
+		migrationSQL, err := os.ReadFile(migration.file)
+		if err != nil {
+			return fmt.Errorf("failed to read migration %d: %w", migration.version, err)
+		}
+
+		// Execute migration
+		log.Printf("Applying migration %d...", migration.version)
+		_, err = db.Exec(string(migrationSQL))
+		if err != nil {
+			return fmt.Errorf("failed to apply migration %d: %w", migration.version, err)
+		}
+
+		// Record migration as applied
+		_, err = db.Exec("INSERT INTO schema_migrations (version) VALUES (?)", migration.version)
+		if err != nil {
+			return fmt.Errorf("failed to record migration %d: %w", migration.version, err)
+		}
+
+		log.Printf("Migration %d applied successfully", migration.version)
+	}
+
+	return nil
+}
 
 func main() {
 	// Database setup
@@ -33,15 +122,9 @@ func main() {
 	defer db.Close()
 
 	// Run migrations
-	migrationSQL, err := os.ReadFile("internal/database/migrations/001_initial_schema.sql")
+	err = runMigrations(db)
 	if err != nil {
-		log.Fatal("Failed to read migration file:", err)
-	}
-
-	_, err = db.Exec(string(migrationSQL))
-	if err != nil {
-		// Only log the error, don't fail - tables might already exist
-		log.Printf("Migration notice: %v", err)
+		log.Fatal("Failed to run migrations:", err)
 	}
 
 	// Generate session secret if not exists
@@ -94,6 +177,20 @@ func main() {
 		r.Post("/import", h.ImportCSV)
 
 		r.Get("/dashboard", h.DashboardView)
+
+		r.Get("/shopping", h.ShoppingListView)
+		r.Post("/shopping/items", h.CreateShoppingItem)
+		r.Post("/shopping/items/{id}", h.UpdateShoppingItem)
+		r.Delete("/shopping/items/{id}", h.DeleteShoppingItem)
+		r.Post("/shopping/meals/{meal}/delete-all", h.DeleteShoppingItemsByMeal)
+		r.Get("/shopping/meals/{meal}/quick-add", h.QuickAddMeal)
+		r.Get("/shopping/autocomplete/items", h.AutocompleteItems)
+		r.Get("/shopping/autocomplete/meals", h.AutocompleteMeals)
+
+		r.Get("/meals", h.MealsList)
+		r.Post("/meals", h.CreateMeal)
+		r.Post("/meals/{id}", h.UpdateMeal)
+		r.Delete("/meals/{id}", h.DeleteMeal)
 
 		r.Post("/logout", h.Logout)
 		r.Get("/reset-password", h.ResetPasswordPage)
