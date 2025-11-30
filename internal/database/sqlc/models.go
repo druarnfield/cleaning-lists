@@ -24,6 +24,15 @@ type Meal struct {
 	UpdatedAt sql.NullTime `json:"updated_at"`
 }
 
+type ScheduleSuggestion struct {
+	ID          int64         `json:"id"`
+	UserMessage string        `json:"user_message"`
+	LlmResponse string        `json:"llm_response"`
+	WeekOffset  sql.NullInt64 `json:"week_offset"`
+	ChangesMade sql.NullBool  `json:"changes_made"`
+	CreatedAt   sql.NullTime  `json:"created_at"`
+}
+
 type Session struct {
 	Token     string       `json:"token"`
 	Username  string       `json:"username"`

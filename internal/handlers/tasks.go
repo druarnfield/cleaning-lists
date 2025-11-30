@@ -8,7 +8,7 @@ import (
 	"time"
 	"github.com/druarnfield/cleaning-scheduler/internal/auth"
 	"github.com/druarnfield/cleaning-scheduler/internal/database/sqlc"
-	"github.com/druarnfield/cleaning-scheduler/internal/scheduler"
+	"github.com/druarnfield/cleaning-scheduler/internal/llm"
 	templPages "github.com/druarnfield/cleaning-scheduler/internal/templates/pages"
 	"github.com/go-chi/chi/v5"
 )
@@ -89,12 +89,11 @@ func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate instances for the new task
-	// If it's Friday/Saturday/Sunday, start from next week
-	// Otherwise, start from current week
-	err = scheduler.GenerateInstancesForNewTask(r.Context(), h.db, task.ID)
+	// Regenerate schedule with LLM to include the new task
+	weeksAhead := llm.ParseWeeksAhead()
+	err = llm.GenerateSchedule(r.Context(), h.db, time.Now(), weeksAhead)
 	if err != nil {
-		log.Printf("Warning: Failed to generate instances for new task %d: %v", task.ID, err)
+		log.Printf("Warning: Failed to regenerate schedule for new task %d: %v", task.ID, err)
 		// Don't fail the request - task is created, instances can be generated later
 	}
 

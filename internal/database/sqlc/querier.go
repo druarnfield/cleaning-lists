@@ -18,16 +18,20 @@ type Querier interface {
 	CreateCompletion(ctx context.Context, arg CreateCompletionParams) (Completion, error)
 	CreateInstance(ctx context.Context, arg CreateInstanceParams) (TaskInstance, error)
 	CreateMeal(ctx context.Context, name string) (Meal, error)
+	CreateScheduleSuggestion(ctx context.Context, arg CreateScheduleSuggestionParams) (ScheduleSuggestion, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	CreateSetting(ctx context.Context, arg CreateSettingParams) error
 	CreateShoppingItem(ctx context.Context, arg CreateShoppingItemParams) (ShoppingItem, error)
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	DeleteCompletion(ctx context.Context, taskInstanceID int64) error
 	DeleteExpiredSessions(ctx context.Context) error
+	DeleteInstance(ctx context.Context, id int64) error
+	DeleteInstancesInDateRange(ctx context.Context, arg DeleteInstancesInDateRangeParams) error
 	DeleteMeal(ctx context.Context, id int64) error
 	DeleteOldCompletions(ctx context.Context, dollar_1 sql.NullString) error
 	DeleteOldInstances(ctx context.Context) error
 	DeleteOldShoppingItems(ctx context.Context) error
+	DeleteOldSuggestions(ctx context.Context, dollar_1 sql.NullString) error
 	DeleteSession(ctx context.Context, token string) error
 	DeleteShoppingItem(ctx context.Context, id int64) error
 	DeleteShoppingItemsByMealAndWeek(ctx context.Context, arg DeleteShoppingItemsByMealAndWeekParams) error
@@ -45,13 +49,16 @@ type Querier interface {
 	GetMeal(ctx context.Context, id int64) (Meal, error)
 	GetMealByName(ctx context.Context, lower string) (Meal, error)
 	GetNextInstanceForTask(ctx context.Context, arg GetNextInstanceForTaskParams) (GetNextInstanceForTaskRow, error)
+	GetRecentSuggestions(ctx context.Context, limit int64) ([]ScheduleSuggestion, error)
 	GetSession(ctx context.Context, token string) (Session, error)
 	GetSetting(ctx context.Context, key string) (string, error)
 	GetShoppingItem(ctx context.Context, id int64) (ShoppingItem, error)
+	GetSuggestionsForWeek(ctx context.Context, arg GetSuggestionsForWeekParams) ([]ScheduleSuggestion, error)
 	GetTask(ctx context.Context, id int64) (Task, error)
 	GetTasksWithNextScheduled(ctx context.Context) ([]GetTasksWithNextScheduledRow, error)
 	GetUser(ctx context.Context, username string) (User, error)
 	GetWeeklyCompletionStats(ctx context.Context) ([]GetWeeklyCompletionStatsRow, error)
+	ListCompletionsByDateRange(ctx context.Context, arg ListCompletionsByDateRangeParams) ([]ListCompletionsByDateRangeRow, error)
 	ListFutureInstances(ctx context.Context, arg ListFutureInstancesParams) ([]ListFutureInstancesRow, error)
 	ListInstancesByDateRange(ctx context.Context, arg ListInstancesByDateRangeParams) ([]ListInstancesByDateRangeRow, error)
 	ListInstancesByWeek(ctx context.Context, weekStartDate time.Time) ([]ListInstancesByWeekRow, error)

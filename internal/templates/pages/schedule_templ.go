@@ -72,24 +72,24 @@ func SchedulePage(user *auth.User, data SchedulePageData) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\"><div class=\"flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4\"><h1 class=\"text-3xl font-bold\">Cleaning Schedule</h1><div class=\"flex gap-2 items-center w-full sm:w-auto\"><select id=\"assignee-filter\" class=\"select select-bordered select-sm w-full sm:w-auto\" hx-get=\"/schedule\" hx-target=\"#schedule-content\" hx-swap=\"innerHTML\" hx-include=\"#week-offset\" name=\"assignee\"><option value=\"all\">All Tasks</option> <option value=\"dru\">Dru's Tasks</option> <option value=\"josie\">Josie's Tasks</option></select> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\"><div class=\"flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4\"><h1 class=\"text-3xl font-bold\">Cleaning Schedule</h1><div class=\"flex gap-2 items-center w-full sm:w-auto flex-wrap\"><select id=\"assignee-filter\" class=\"select select-bordered select-sm w-full sm:w-auto\" hx-get=\"/schedule\" hx-target=\"#schedule-content\" hx-swap=\"innerHTML\" hx-include=\"#week-offset\" name=\"assignee\"><option value=\"all\">All Tasks</option> <option value=\"dru\">Dru's Tasks</option> <option value=\"josie\">Josie's Tasks</option></select> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if data.WeekOffset != 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button class=\"btn btn-outline btn-primary btn-sm\" hx-get=\"/schedule\" hx-target=\"#schedule-content\" hx-swap=\"innerHTML\" hx-include=\"#assignee-filter\">Current Week</button>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button class=\"btn btn-outline btn-primary btn-sm\" hx-get=\"/schedule\" hx-target=\"#schedule-content\" hx-swap=\"innerHTML\" hx-include=\"#assignee-filter\">Current Week</button> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div><input type=\"hidden\" id=\"week-offset\" name=\"week\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<button class=\"btn btn-outline btn-accent btn-sm\" hx-post=\"/schedule/generate\" hx-target=\"#schedule-content\" hx-swap=\"innerHTML\" hx-indicator=\"#generate-spinner\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-4 h-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99\"></path></svg> <span class=\"hidden sm:inline\">Generate Schedule</span> <span class=\"sm:hidden\">Generate</span> <span id=\"generate-spinner\" class=\"loading loading-spinner loading-sm htmx-indicator\"></span></button></div></div><input type=\"hidden\" id=\"week-offset\" name=\"week\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(data.WeekOffset))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 66, Col: 90}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 80, Col: 90}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -103,7 +103,7 @@ func SchedulePage(user *auth.User, data SchedulePageData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div><!-- Bring Forward Modal --> <dialog id=\"bring_forward_modal\" class=\"modal modal-bottom sm:modal-middle\"><div class=\"modal-box\"><h3 class=\"font-bold text-lg\">Bring Task Forward</h3><form method=\"POST\" id=\"bring-forward-form\" hx-post=\"#\" hx-swap=\"outerHTML\" hx-target=\"#week-container\"><div class=\"form-control my-4\"><label class=\"label\"><span class=\"label-text\">Select Date</span></label> <input type=\"date\" name=\"target_date\" class=\"input input-bordered\" required></div><div class=\"modal-action\"><button type=\"button\" class=\"btn\" onclick=\"document.getElementById('bring_forward_modal').close()\">Cancel</button> <button type=\"submit\" class=\"btn btn-primary\">Bring Forward</button></div></form></div><form method=\"dialog\" class=\"modal-backdrop\"><button>close</button></form></dialog><script>\n\t\t\tfunction bringForwardModal(taskId) {\n\t\t\t\tconst form = document.getElementById('bring-forward-form');\n\t\t\t\tform.setAttribute('hx-post', `/tasks/${taskId}/bring-forward`);\n\t\t\t\thtmx.process(form);\n\t\t\t\tdocument.getElementById('bring_forward_modal').showModal();\n\t\t\t}\n\n\t\t\t// Handle bring forward buttons\n\t\t\tdocument.addEventListener('click', function(e) {\n\t\t\t\tif (e.target.classList.contains('bring-forward-btn')) {\n\t\t\t\t\tconst taskId = e.target.getAttribute('data-task-id');\n\t\t\t\t\tbringForwardModal(taskId);\n\t\t\t\t}\n\t\t\t});\n\n\t\t\t// Sort table function\n\t\t\tfunction sortTable(tableId, column) {\n\t\t\t\tconst table = document.getElementById(tableId);\n\t\t\t\tconst tbody = table.querySelector('tbody');\n\t\t\t\tconst rows = Array.from(tbody.querySelectorAll('tr'));\n\t\t\t\tconst isAscending = table.getAttribute('data-sort-column') === column.toString() &&\n\t\t\t\t\t\t\t\t   table.getAttribute('data-sort-dir') === 'asc';\n\n\t\t\t\trows.sort((a, b) => {\n\t\t\t\t\tconst aText = a.cells[column].innerText;\n\t\t\t\t\tconst bText = b.cells[column].innerText;\n\n\t\t\t\t\t// Try to parse as numbers first\n\t\t\t\t\tconst aNum = parseFloat(aText);\n\t\t\t\t\tconst bNum = parseFloat(bText);\n\n\t\t\t\t\tif (!isNaN(aNum) && !isNaN(bNum)) {\n\t\t\t\t\t\treturn isAscending ? bNum - aNum : aNum - bNum;\n\t\t\t\t\t}\n\n\t\t\t\t\t// Otherwise sort as text\n\t\t\t\t\treturn isAscending ?\n\t\t\t\t\t\tbText.localeCompare(aText) :\n\t\t\t\t\t\taText.localeCompare(bText);\n\t\t\t\t});\n\n\t\t\t\t// Clear tbody and re-add sorted rows\n\t\t\t\ttbody.innerHTML = '';\n\t\t\t\trows.forEach(row => tbody.appendChild(row));\n\n\t\t\t\t// Update sort attributes\n\t\t\t\ttable.setAttribute('data-sort-column', column);\n\t\t\t\ttable.setAttribute('data-sort-dir', isAscending ? 'desc' : 'asc');\n\n\t\t\t\t// Update sort indicators\n\t\t\t\tconst headers = table.querySelectorAll('th');\n\t\t\t\theaders.forEach((header, idx) => {\n\t\t\t\t\theader.classList.remove('sort-asc', 'sort-desc');\n\t\t\t\t\tif (idx === column) {\n\t\t\t\t\t\theader.classList.add(isAscending ? 'sort-desc' : 'sort-asc');\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t}\n\t\t</script> <style>\n\t\t\t.sort-asc::after {\n\t\t\t\tcontent: ' ↑';\n\t\t\t\topacity: 0.7;\n\t\t\t\tcolor: #3b82f6;\n\t\t\t\tfont-weight: bold;\n\t\t\t}\n\t\t\t.sort-desc::after {\n\t\t\t\tcontent: ' ↓';\n\t\t\t\topacity: 0.7;\n\t\t\t\tcolor: #3b82f6;\n\t\t\t\tfont-weight: bold;\n\t\t\t}\n\t\t\tth {\n\t\t\t\tcursor: pointer;\n\t\t\t\tuser-select: none;\n\t\t\t}\n\t\t\tth:hover {\n\t\t\t\tbackground-color: rgba(0,0,0,0.08);\n\t\t\t\ttransform: translateY(-1px);\n\t\t\t}\n\t\t\ttbody tr:hover {\n\t\t\t\ttransform: translateY(-1px);\n\t\t\t\tbox-shadow: 0 4px 12px rgba(0,0,0,0.1);\n\t\t\t}\n\t\t\t.table tbody tr {\n\t\t\t\ttransition: all 0.2s ease;\n\t\t\t}\n\t\t</style>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div><!-- Floating Chat Button --><button class=\"btn btn-circle btn-primary fixed bottom-6 right-6 shadow-lg\" onclick=\"document.getElementById('chat_modal').showModal()\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-6 h-6\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z\"></path></svg></button></div><!-- Bring Forward Modal --> <dialog id=\"bring_forward_modal\" class=\"modal modal-bottom sm:modal-middle\"><div class=\"modal-box\"><h3 class=\"font-bold text-lg\">Bring Task Forward</h3><form method=\"POST\" id=\"bring-forward-form\" hx-post=\"#\" hx-swap=\"outerHTML\" hx-target=\"#week-container\"><div class=\"form-control my-4\"><label class=\"label\"><span class=\"label-text\">Select Date</span></label> <input type=\"date\" name=\"target_date\" class=\"input input-bordered\" required></div><div class=\"modal-action\"><button type=\"button\" class=\"btn\" onclick=\"document.getElementById('bring_forward_modal').close()\">Cancel</button> <button type=\"submit\" class=\"btn btn-primary\">Bring Forward</button></div></form></div><form method=\"dialog\" class=\"modal-backdrop\"><button>close</button></form></dialog><!-- Schedule Assistant Chat Modal --> <dialog id=\"chat_modal\" class=\"modal modal-bottom sm:modal-middle\"><div class=\"modal-box max-w-2xl\"><h3 class=\"font-bold text-lg flex items-center gap-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-5 h-5\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z\"></path></svg> Schedule Assistant</h3><p class=\"text-sm text-base-content/60 mt-2\">Ask me to adjust your schedule, swap tasks, or make changes for the week.</p><div id=\"chat-messages\" class=\"my-4 space-y-3 max-h-64 overflow-y-auto\"></div><div class=\"form-control\"><label class=\"label\"><span class=\"label-text\">Your request</span></label> <textarea id=\"chat-input\" class=\"textarea textarea-bordered\" placeholder=\"e.g., 'Make next week lighter for me' or 'Swap bathroom tasks with Josie this week'\" rows=\"3\"></textarea></div><div class=\"modal-action\"><button type=\"button\" class=\"btn\" onclick=\"document.getElementById('chat_modal').close()\">Close</button> <button type=\"button\" class=\"btn btn-primary\" onclick=\"sendChatMessage()\"><span id=\"chat-send-text\">Send</span> <span id=\"chat-loading\" class=\"loading loading-spinner loading-sm hidden\"></span></button></div></div><form method=\"dialog\" class=\"modal-backdrop\"><button>close</button></form></dialog><script>\n\t\t\tfunction bringForwardModal(taskId) {\n\t\t\t\tconst form = document.getElementById('bring-forward-form');\n\t\t\t\tform.setAttribute('hx-post', `/tasks/${taskId}/bring-forward`);\n\t\t\t\thtmx.process(form);\n\t\t\t\tdocument.getElementById('bring_forward_modal').showModal();\n\t\t\t}\n\n\t\t\t// Handle bring forward buttons\n\t\t\tdocument.addEventListener('click', function(e) {\n\t\t\t\tif (e.target.classList.contains('bring-forward-btn')) {\n\t\t\t\t\tconst taskId = e.target.getAttribute('data-task-id');\n\t\t\t\t\tbringForwardModal(taskId);\n\t\t\t\t}\n\t\t\t});\n\n\t\t\t// Sort table function\n\t\t\tfunction sortTable(tableId, column) {\n\t\t\t\tconst table = document.getElementById(tableId);\n\t\t\t\tconst tbody = table.querySelector('tbody');\n\t\t\t\tconst rows = Array.from(tbody.querySelectorAll('tr'));\n\t\t\t\tconst isAscending = table.getAttribute('data-sort-column') === column.toString() &&\n\t\t\t\t\t\t\t\t   table.getAttribute('data-sort-dir') === 'asc';\n\n\t\t\t\trows.sort((a, b) => {\n\t\t\t\t\tconst aText = a.cells[column].innerText;\n\t\t\t\t\tconst bText = b.cells[column].innerText;\n\n\t\t\t\t\t// Try to parse as numbers first\n\t\t\t\t\tconst aNum = parseFloat(aText);\n\t\t\t\t\tconst bNum = parseFloat(bText);\n\n\t\t\t\t\tif (!isNaN(aNum) && !isNaN(bNum)) {\n\t\t\t\t\t\treturn isAscending ? bNum - aNum : aNum - bNum;\n\t\t\t\t\t}\n\n\t\t\t\t\t// Otherwise sort as text\n\t\t\t\t\treturn isAscending ?\n\t\t\t\t\t\tbText.localeCompare(aText) :\n\t\t\t\t\t\taText.localeCompare(bText);\n\t\t\t\t});\n\n\t\t\t\t// Clear tbody and re-add sorted rows\n\t\t\t\ttbody.innerHTML = '';\n\t\t\t\trows.forEach(row => tbody.appendChild(row));\n\n\t\t\t\t// Update sort attributes\n\t\t\t\ttable.setAttribute('data-sort-column', column);\n\t\t\t\ttable.setAttribute('data-sort-dir', isAscending ? 'desc' : 'asc');\n\n\t\t\t\t// Update sort indicators\n\t\t\t\tconst headers = table.querySelectorAll('th');\n\t\t\t\theaders.forEach((header, idx) => {\n\t\t\t\t\theader.classList.remove('sort-asc', 'sort-desc');\n\t\t\t\t\tif (idx === column) {\n\t\t\t\t\t\theader.classList.add(isAscending ? 'sort-desc' : 'sort-asc');\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t}\n\n\t\t\t// Chat functionality\n\t\t\tfunction sendChatMessage() {\n\t\t\t\tconst input = document.getElementById('chat-input');\n\t\t\t\tconst message = input.value.trim();\n\n\t\t\t\tif (!message) {\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\t// Show loading state\n\t\t\t\tdocument.getElementById('chat-send-text').classList.add('hidden');\n\t\t\t\tdocument.getElementById('chat-loading').classList.remove('hidden');\n\n\t\t\t\t// Get current week offset\n\t\t\t\tconst weekOffset = parseInt(document.getElementById('week-offset').value) || 0;\n\n\t\t\t\t// Add user message to chat\n\t\t\t\tconst messagesDiv = document.getElementById('chat-messages');\n\t\t\t\tmessagesDiv.innerHTML += `\n\t\t\t\t\t<div class=\"chat chat-end\">\n\t\t\t\t\t\t<div class=\"chat-bubble chat-bubble-primary\">${escapeHtml(message)}</div>\n\t\t\t\t\t</div>\n\t\t\t\t`;\n\t\t\t\tmessagesDiv.scrollTop = messagesDiv.scrollHeight;\n\n\t\t\t\t// Clear input\n\t\t\t\tinput.value = '';\n\n\t\t\t\t// Send to server\n\t\t\t\tfetch('/schedule/chat', {\n\t\t\t\t\tmethod: 'POST',\n\t\t\t\t\theaders: {\n\t\t\t\t\t\t'Content-Type': 'application/json',\n\t\t\t\t\t},\n\t\t\t\t\tbody: JSON.stringify({\n\t\t\t\t\t\tmessage: message,\n\t\t\t\t\t\tweek_offset: weekOffset\n\t\t\t\t\t})\n\t\t\t\t})\n\t\t\t\t.then(response => response.json())\n\t\t\t\t.then(data => {\n\t\t\t\t\t// Add LLM response to chat\n\t\t\t\t\tmessagesDiv.innerHTML += `\n\t\t\t\t\t\t<div class=\"chat chat-start\">\n\t\t\t\t\t\t\t<div class=\"chat-bubble\">${escapeHtml(data.response)}</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t`;\n\t\t\t\t\tmessagesDiv.scrollTop = messagesDiv.scrollHeight;\n\n\t\t\t\t\t// If schedule was updated, refresh the schedule view\n\t\t\t\t\tif (data.updated) {\n\t\t\t\t\t\thtmx.ajax('GET', `/schedule?week=${weekOffset}`, {target: '#schedule-content', swap: 'innerHTML'});\n\t\t\t\t\t}\n\t\t\t\t})\n\t\t\t\t.catch(error => {\n\t\t\t\t\tconsole.error('Chat error:', error);\n\t\t\t\t\tmessagesDiv.innerHTML += `\n\t\t\t\t\t\t<div class=\"chat chat-start\">\n\t\t\t\t\t\t\t<div class=\"chat-bubble chat-bubble-error\">Sorry, I encountered an error. Please try again.</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t`;\n\t\t\t\t\tmessagesDiv.scrollTop = messagesDiv.scrollHeight;\n\t\t\t\t})\n\t\t\t\t.finally(() => {\n\t\t\t\t\t// Reset button state\n\t\t\t\t\tdocument.getElementById('chat-send-text').classList.remove('hidden');\n\t\t\t\t\tdocument.getElementById('chat-loading').classList.add('hidden');\n\t\t\t\t});\n\t\t\t}\n\n\t\t\tfunction escapeHtml(text) {\n\t\t\t\tconst div = document.createElement('div');\n\t\t\t\tdiv.textContent = text;\n\t\t\t\treturn div.innerHTML;\n\t\t\t}\n\n\t\t\t// Allow Enter to send message (with Shift+Enter for new line)\n\t\t\tdocument.addEventListener('DOMContentLoaded', function() {\n\t\t\t\tconst chatInput = document.getElementById('chat-input');\n\t\t\t\tif (chatInput) {\n\t\t\t\t\tchatInput.addEventListener('keydown', function(e) {\n\t\t\t\t\t\tif (e.key === 'Enter' && !e.shiftKey) {\n\t\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\t\tsendChatMessage();\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t}\n\t\t\t});\n\t\t</script> <style>\n\t\t\t.sort-asc::after {\n\t\t\t\tcontent: ' ↑';\n\t\t\t\topacity: 0.7;\n\t\t\t\tcolor: #3b82f6;\n\t\t\t\tfont-weight: bold;\n\t\t\t}\n\t\t\t.sort-desc::after {\n\t\t\t\tcontent: ' ↓';\n\t\t\t\topacity: 0.7;\n\t\t\t\tcolor: #3b82f6;\n\t\t\t\tfont-weight: bold;\n\t\t\t}\n\t\t\tth {\n\t\t\t\tcursor: pointer;\n\t\t\t\tuser-select: none;\n\t\t\t}\n\t\t\tth:hover {\n\t\t\t\tbackground-color: rgba(0,0,0,0.08);\n\t\t\t\ttransform: translateY(-1px);\n\t\t\t}\n\t\t\ttbody tr:hover {\n\t\t\t\ttransform: translateY(-1px);\n\t\t\t\tbox-shadow: 0 4px 12px rgba(0,0,0,0.1);\n\t\t\t}\n\t\t\t.table tbody tr {\n\t\t\t\ttransition: all 0.2s ease;\n\t\t\t}\n\t\t</style>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -145,7 +145,7 @@ func ScheduleContent(data SchedulePageData) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(data.CurrentWeek.DruRemainingMins))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 194, Col: 111}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 347, Col: 111}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -158,7 +158,7 @@ func ScheduleContent(data SchedulePageData) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(data.CurrentWeek.JosieRemainingMins))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 198, Col: 115}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 351, Col: 115}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -208,7 +208,7 @@ func WeekCard(week WeekData, isCurrent bool, weekOffset int) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs("/schedule?week=" + strconv.Itoa(weekOffset-1))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 216, Col: 63}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 369, Col: 63}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -221,7 +221,7 @@ func WeekCard(week WeekData, isCurrent bool, weekOffset int) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(week.WeekStart)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 225, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 378, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -244,7 +244,7 @@ func WeekCard(week WeekData, isCurrent bool, weekOffset int) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs("/schedule?week=" + strconv.Itoa(weekOffset+1))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 231, Col: 63}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 384, Col: 63}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -311,7 +311,7 @@ func TaskRow(task TaskDisplay) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("task-" + strconv.FormatInt(task.ID, 10))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 273, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 426, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -324,7 +324,7 @@ func TaskRow(task TaskDisplay) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(task.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 275, Col: 14}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 428, Col: 14}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -337,7 +337,7 @@ func TaskRow(task TaskDisplay) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(task.Category)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 277, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 430, Col: 19}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -350,7 +350,7 @@ func TaskRow(task TaskDisplay) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(task.EstimatedMins, 10))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 277, Col: 69}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 430, Col: 69}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -363,7 +363,7 @@ func TaskRow(task TaskDisplay) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(task.Category)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 281, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 434, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
@@ -391,7 +391,7 @@ func TaskRow(task TaskDisplay) templ.Component {
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(task.AssignedTo)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 289, Col: 76}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 442, Col: 76}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -409,7 +409,7 @@ func TaskRow(task TaskDisplay) templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(task.EstimatedMins, 10))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 292, Col: 78}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 445, Col: 78}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -422,7 +422,7 @@ func TaskRow(task TaskDisplay) templ.Component {
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(task.ScheduledDate)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 293, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 446, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
@@ -472,7 +472,7 @@ func TaskRow(task TaskDisplay) templ.Component {
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs("/tasks/instances/" + strconv.FormatInt(task.ID, 10) + "/toggle")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 305, Col: 79}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 458, Col: 79}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
@@ -505,7 +505,7 @@ func TaskRow(task TaskDisplay) templ.Component {
 			var templ_7745c5c3_Var23 string
 			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(task.ID, 10))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 320, Col: 51}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/schedule.templ`, Line: 473, Col: 51}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 			if templ_7745c5c3_Err != nil {

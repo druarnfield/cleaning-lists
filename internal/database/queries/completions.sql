@@ -61,3 +61,11 @@ FROM (
     LIMIT 4
 )
 ORDER BY week_start ASC;
+
+-- name: ListCompletionsByDateRange :many
+SELECT c.*, ti.assigned_to, t.name
+FROM completions c
+JOIN task_instances ti ON c.task_instance_id = ti.id
+JOIN tasks t ON ti.task_id = t.id
+WHERE ti.scheduled_date >= ? AND ti.scheduled_date <= ?
+ORDER BY c.completed_at DESC;

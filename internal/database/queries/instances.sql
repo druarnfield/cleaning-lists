@@ -86,3 +86,11 @@ ORDER BY week_start_date, scheduled_date;
 UPDATE task_instances
 SET assigned_to = ?
 WHERE id = ?;
+
+-- name: DeleteInstancesInDateRange :exec
+DELETE FROM task_instances
+WHERE week_start_date >= ? AND week_start_date <= ?;
+
+-- name: DeleteInstance :exec
+DELETE FROM task_instances
+WHERE id = ?;

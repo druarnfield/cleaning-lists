@@ -131,3 +131,4 @@ Three main tables with appropriate indexes:
 - No external API dependencies - fully self-contained
 - HTMX enables dynamic updates without writing JavaScript
 - Fair distribution algorithm runs after CSV import or manual rebalance
+- you gotta use go path for sqlc and templ

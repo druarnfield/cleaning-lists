@@ -10,7 +10,7 @@ import (
 	"time"
 	"github.com/druarnfield/cleaning-scheduler/internal/auth"
 	"github.com/druarnfield/cleaning-scheduler/internal/database/sqlc"
-	"github.com/druarnfield/cleaning-scheduler/internal/scheduler"
+	"github.com/druarnfield/cleaning-scheduler/internal/llm"
 	templPages "github.com/druarnfield/cleaning-scheduler/internal/templates/pages"
 )
 
@@ -86,9 +86,10 @@ func (h *Handler) ImportCSV(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Generate initial instances
+	// Generate instances with LLM
 	startDate := time.Now().Truncate(24 * time.Hour)
-	scheduler.GenerateInstances(r.Context(), h.db, startDate, 4)
+	weeksAhead := llm.ParseWeeksAhead()
+	llm.GenerateSchedule(r.Context(), h.db, startDate, weeksAhead)
 
 	// Redirect to schedule
 	http.Redirect(w, r, "/schedule", http.StatusSeeOther)

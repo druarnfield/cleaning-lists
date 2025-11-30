@@ -3,11 +3,13 @@ package handlers
 import (
 	"context"
 	"database/sql"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
 	"github.com/druarnfield/cleaning-scheduler/internal/auth"
 	"github.com/druarnfield/cleaning-scheduler/internal/database/sqlc"
+	"github.com/druarnfield/cleaning-scheduler/internal/llm"
 	"github.com/druarnfield/cleaning-scheduler/internal/scheduler"
 	templPages "github.com/druarnfield/cleaning-scheduler/internal/templates/pages"
 	"github.com/go-chi/chi/v5"
@@ -298,5 +300,45 @@ func (h *Handler) BringForwardTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Redirect back to schedule
+	http.Redirect(w, r, "/schedule", http.StatusSeeOther)
+}
+
+func (h *Handler) GenerateSchedule(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	log.Println("Manual LLM-powered task generation triggered...")
+	weeksAhead := llm.ParseWeeksAhead()
+	err := llm.GenerateSchedule(r.Context(), h.db, time.Now(), weeksAhead)
+	if err != nil {
+		log.Printf("Error generating instances: %v", err)
+		http.Error(w, "Failed to generate schedule", http.StatusInternalServerError)
+		return
+	}
+
+	// If HTMX request, return the schedule content
+	if r.Header.Get("HX-Request") == "true" {
+		// Get current week data
+		now := time.Now()
+		currentWeekStart := scheduler.GetWeekStart(now)
+		weekInstances, _ := h.db.ListInstancesByWeek(r.Context(), currentWeekStart)
+
+		weekData := h.formatWeekDataForTempl(r.Context(), weekInstances, currentWeekStart)
+		weekData.WeekOffset = 0
+		weekData.IsCurrentWeek = true
+
+		data := templPages.SchedulePageData{
+			CurrentWeek: weekData,
+			WeekOffset:  0,
+		}
+
+		component := templPages.ScheduleContent(data)
+		Render(w, r, component)
+		return
+	}
+
+	// Otherwise redirect back to schedule
 	http.Redirect(w, r, "/schedule", http.StatusSeeOther)
 }

@@ -242,3 +242,58 @@ func (q *Queries) GetWeeklyCompletionStats(ctx context.Context) ([]GetWeeklyComp
 	}
 	return items, nil
 }
+
+const listCompletionsByDateRange = `-- name: ListCompletionsByDateRange :many
+SELECT c.id, c.task_instance_id, c.completed_by, c.completed_at, c.actual_mins, ti.assigned_to, t.name
+FROM completions c
+JOIN task_instances ti ON c.task_instance_id = ti.id
+JOIN tasks t ON ti.task_id = t.id
+WHERE ti.scheduled_date >= ? AND ti.scheduled_date <= ?
+ORDER BY c.completed_at DESC
+`
+
+type ListCompletionsByDateRangeParams struct {
+	ScheduledDate   time.Time `json:"scheduled_date"`
+	ScheduledDate_2 time.Time `json:"scheduled_date_2"`
+}
+
+type ListCompletionsByDateRangeRow struct {
+	ID             int64         `json:"id"`
+	TaskInstanceID int64         `json:"task_instance_id"`
+	CompletedBy    string        `json:"completed_by"`
+	CompletedAt    sql.NullTime  `json:"completed_at"`
+	ActualMins     sql.NullInt64 `json:"actual_mins"`
+	AssignedTo     string        `json:"assigned_to"`
+	Name           string        `json:"name"`
+}
+
+func (q *Queries) ListCompletionsByDateRange(ctx context.Context, arg ListCompletionsByDateRangeParams) ([]ListCompletionsByDateRangeRow, error) {
+	rows, err := q.db.QueryContext(ctx, listCompletionsByDateRange, arg.ScheduledDate, arg.ScheduledDate_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCompletionsByDateRangeRow{}
+	for rows.Next() {
+		var i ListCompletionsByDateRangeRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.TaskInstanceID,
+			&i.CompletedBy,
+			&i.CompletedAt,
+			&i.ActualMins,
+			&i.AssignedTo,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

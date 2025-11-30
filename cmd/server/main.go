@@ -17,7 +17,7 @@ import (
 	"github.com/druarnfield/cleaning-scheduler/internal/auth"
 	"github.com/druarnfield/cleaning-scheduler/internal/database"
 	"github.com/druarnfield/cleaning-scheduler/internal/handlers"
-	"github.com/druarnfield/cleaning-scheduler/internal/scheduler"
+	"github.com/druarnfield/cleaning-scheduler/internal/llm"
 )
 
 // runMigrations executes database migrations in a production-safe manner
@@ -67,6 +67,7 @@ func runMigrations(db *sql.DB) error {
 		{1, "internal/database/migrations/001_initial_schema.sql"},
 		{2, "internal/database/migrations/002_shopping_list.sql"},
 		{3, "internal/database/migrations/003_meals_table.sql"},
+		{4, "internal/database/migrations/004_llm_scheduler.sql"},
 	}
 
 	// Check and run each migration
@@ -165,6 +166,9 @@ func main() {
 		r.Post("/setup-password", h.SetupPassword)
 
 		r.Get("/schedule", h.ScheduleView)
+		r.Post("/schedule/chat", h.ScheduleChat)
+		r.Get("/schedule/chat/history", h.GetChatHistory)
+		r.Post("/schedule/generate", h.GenerateSchedule)
 		r.Post("/tasks/instances/{id}/toggle", h.ToggleCompletion)
 		r.Post("/tasks/{id}/bring-forward", h.BringForwardTask)
 
@@ -199,16 +203,6 @@ func main() {
 
 	// Setup background scheduler
 	s := gocron.NewScheduler(time.UTC)
-
-	// Generate upcoming weeks every Sunday at midnight
-	s.Every(1).Week().Sunday().At("00:00").Do(func() {
-		log.Println("Running weekly task generation...")
-		ctx := context.Background()
-		err := scheduler.GenerateInstances(ctx, queries, time.Now(), 4)
-		if err != nil {
-			log.Printf("Error generating instances: %v", err)
-		}
-	})
 
 	// Clean old data weekly
 	s.Every(1).Week().Sunday().At("01:00").Do(func() {
@@ -247,8 +241,12 @@ func main() {
 	// Check if initial instances need to be generated
 	count, _ := queries.CountInstances(ctx)
 	if count == 0 {
-		log.Println("Generating initial instances...")
-		scheduler.GenerateInstances(ctx, queries, time.Now(), 4)
+		log.Println("Generating initial instances with LLM...")
+		weeksAhead := llm.ParseWeeksAhead()
+		err := llm.GenerateSchedule(ctx, queries, time.Now(), weeksAhead)
+		if err != nil {
+			log.Printf("Error generating initial instances: %v", err)
+		}
 	}
 
 	// Start server

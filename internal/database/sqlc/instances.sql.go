@@ -97,6 +97,31 @@ func (q *Queries) CreateInstance(ctx context.Context, arg CreateInstanceParams) 
 	return i, err
 }
 
+const deleteInstance = `-- name: DeleteInstance :exec
+DELETE FROM task_instances
+WHERE id = ?
+`
+
+func (q *Queries) DeleteInstance(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteInstance, id)
+	return err
+}
+
+const deleteInstancesInDateRange = `-- name: DeleteInstancesInDateRange :exec
+DELETE FROM task_instances
+WHERE week_start_date >= ? AND week_start_date <= ?
+`
+
+type DeleteInstancesInDateRangeParams struct {
+	WeekStartDate   time.Time `json:"week_start_date"`
+	WeekStartDate_2 time.Time `json:"week_start_date_2"`
+}
+
+func (q *Queries) DeleteInstancesInDateRange(ctx context.Context, arg DeleteInstancesInDateRangeParams) error {
+	_, err := q.db.ExecContext(ctx, deleteInstancesInDateRange, arg.WeekStartDate, arg.WeekStartDate_2)
+	return err
+}
+
 const deleteOldInstances = `-- name: DeleteOldInstances :exec
 DELETE FROM task_instances
 WHERE scheduled_date < date('now', '-90 days')

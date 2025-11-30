@@ -36,7 +36,7 @@ templ SchedulePage(user *auth.User, data SchedulePageData) {
 		<div class="space-y-6">
 			<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 				<h1 class="text-3xl font-bold">Cleaning Schedule</h1>
-				<div class="flex gap-2 items-center w-full sm:w-auto">
+				<div class="flex gap-2 items-center w-full sm:w-auto flex-wrap">
 					<select
 						id="assignee-filter"
 						class="select select-bordered select-sm w-full sm:w-auto"
@@ -61,6 +61,20 @@ templ SchedulePage(user *auth.User, data SchedulePageData) {
 							Current Week
 						</button>
 					}
+					<button
+						class="btn btn-outline btn-accent btn-sm"
+						hx-post="/schedule/generate"
+						hx-target="#schedule-content"
+						hx-swap="innerHTML"
+						hx-indicator="#generate-spinner"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+						</svg>
+						<span class="hidden sm:inline">Generate Schedule</span>
+						<span class="sm:hidden">Generate</span>
+						<span id="generate-spinner" class="loading loading-spinner loading-sm htmx-indicator"></span>
+					</button>
 				</div>
 			</div>
 			<input type="hidden" id="week-offset" name="week" value={ strconv.Itoa(data.WeekOffset) }/>
@@ -68,6 +82,16 @@ templ SchedulePage(user *auth.User, data SchedulePageData) {
 			<div id="schedule-content">
 				@ScheduleContent(data)
 			</div>
+
+			<!-- Floating Chat Button -->
+			<button
+				class="btn btn-circle btn-primary fixed bottom-6 right-6 shadow-lg"
+				onclick="document.getElementById('chat_modal').showModal()"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+				</svg>
+			</button>
 		</div>
 
 		<!-- Bring Forward Modal -->
@@ -86,6 +110,46 @@ templ SchedulePage(user *auth.User, data SchedulePageData) {
 						<button type="submit" class="btn btn-primary">Bring Forward</button>
 					</div>
 				</form>
+			</div>
+			<form method="dialog" class="modal-backdrop">
+				<button>close</button>
+			</form>
+		</dialog>
+
+		<!-- Schedule Assistant Chat Modal -->
+		<dialog id="chat_modal" class="modal modal-bottom sm:modal-middle">
+			<div class="modal-box max-w-2xl">
+				<h3 class="font-bold text-lg flex items-center gap-2">
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+					</svg>
+					Schedule Assistant
+				</h3>
+				<p class="text-sm text-base-content/60 mt-2">
+					Ask me to adjust your schedule, swap tasks, or make changes for the week.
+				</p>
+
+				<div id="chat-messages" class="my-4 space-y-3 max-h-64 overflow-y-auto"></div>
+
+				<div class="form-control">
+					<label class="label">
+						<span class="label-text">Your request</span>
+					</label>
+					<textarea
+						id="chat-input"
+						class="textarea textarea-bordered"
+						placeholder="e.g., 'Make next week lighter for me' or 'Swap bathroom tasks with Josie this week'"
+						rows="3"
+					></textarea>
+				</div>
+
+				<div class="modal-action">
+					<button type="button" class="btn" onclick="document.getElementById('chat_modal').close()">Close</button>
+					<button type="button" class="btn btn-primary" onclick="sendChatMessage()">
+						<span id="chat-send-text">Send</span>
+						<span id="chat-loading" class="loading loading-spinner loading-sm hidden"></span>
+					</button>
+				</div>
 			</div>
 			<form method="dialog" class="modal-backdrop">
 				<button>close</button>
@@ -151,6 +215,95 @@ templ SchedulePage(user *auth.User, data SchedulePageData) {
 					}
 				});
 			}
+
+			// Chat functionality
+			function sendChatMessage() {
+				const input = document.getElementById('chat-input');
+				const message = input.value.trim();
+
+				if (!message) {
+					return;
+				}
+
+				// Show loading state
+				document.getElementById('chat-send-text').classList.add('hidden');
+				document.getElementById('chat-loading').classList.remove('hidden');
+
+				// Get current week offset
+				const weekOffset = parseInt(document.getElementById('week-offset').value) || 0;
+
+				// Add user message to chat
+				const messagesDiv = document.getElementById('chat-messages');
+				messagesDiv.innerHTML += `
+					<div class="chat chat-end">
+						<div class="chat-bubble chat-bubble-primary">${escapeHtml(message)}</div>
+					</div>
+				`;
+				messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+				// Clear input
+				input.value = '';
+
+				// Send to server
+				fetch('/schedule/chat', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						message: message,
+						week_offset: weekOffset
+					})
+				})
+				.then(response => response.json())
+				.then(data => {
+					// Add LLM response to chat
+					messagesDiv.innerHTML += `
+						<div class="chat chat-start">
+							<div class="chat-bubble">${escapeHtml(data.response)}</div>
+						</div>
+					`;
+					messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+					// If schedule was updated, refresh the schedule view
+					if (data.updated) {
+						htmx.ajax('GET', `/schedule?week=${weekOffset}`, {target: '#schedule-content', swap: 'innerHTML'});
+					}
+				})
+				.catch(error => {
+					console.error('Chat error:', error);
+					messagesDiv.innerHTML += `
+						<div class="chat chat-start">
+							<div class="chat-bubble chat-bubble-error">Sorry, I encountered an error. Please try again.</div>
+						</div>
+					`;
+					messagesDiv.scrollTop = messagesDiv.scrollHeight;
+				})
+				.finally(() => {
+					// Reset button state
+					document.getElementById('chat-send-text').classList.remove('hidden');
+					document.getElementById('chat-loading').classList.add('hidden');
+				});
+			}
+
+			function escapeHtml(text) {
+				const div = document.createElement('div');
+				div.textContent = text;
+				return div.innerHTML;
+			}
+
+			// Allow Enter to send message (with Shift+Enter for new line)
+			document.addEventListener('DOMContentLoaded', function() {
+				const chatInput = document.getElementById('chat-input');
+				if (chatInput) {
+					chatInput.addEventListener('keydown', function(e) {
+						if (e.key === 'Enter' && !e.shiftKey) {
+							e.preventDefault();
+							sendChatMessage();
+						}
+					});
+				}
+			});
 		</script>
 
 		<style>
